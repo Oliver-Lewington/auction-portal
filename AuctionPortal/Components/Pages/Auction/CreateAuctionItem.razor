@@ -1,0 +1,20 @@
+﻿@page "/auction/create-auction-item"
+@using AuctionPortal.Data.Models
+@using AuctionPortal.Components.ImageCarousel
+
+<PageTitle>Create an Auction Item</PageTitle>
+
+<ImageCarousel Items="@MyImages" 
+          VisibleCount="5" />
+          
+@code {
+    private List<CarouselImage> MyImages = new()
+    {
+        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=1" },
+        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=2" },
+        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=3" },
+        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=4" },
+        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=5" },
+        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=6" },
+    };
+}

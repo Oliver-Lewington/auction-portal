@@ -1,0 +1,155 @@
+﻿@using AuctionPortal.Components.ImageCarousel
+@using System.Linq
+
+<link href="css/carousel.css" rel="stylesheet" />
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Class="pa-6" Elevation="6" Style="border-radius:16px;">
+
+        <!-- Large Main Image -->
+        <div class="d-flex justify-center mb-3">
+            <MudImage Src="@SelectedImage?.Url"
+                      Alt="@SelectedImage?.Alt"
+                      Elevation="25"
+                      Class="rounded-lg cursor-pointer"
+                      Style="max-height:400px; width:auto; object-fit:contain;"
+                      draggable="false" />
+        </div>
+
+        <!-- Thumbnail Strip -->
+        <div class="d-flex align-center justify-space-between">
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                           OnClick="PrevThumb"
+                           Disabled="@IsPrevDisabled"
+                           Class="@GetArrowClass()" />
+
+            <MudGrid Class="mx-2" GutterSize="2" Justify="Justify.Center" Style="flex:1;">
+                @for (int i = startIndex; i < Math.Min(startIndex + VisibleCount, itemsList.Count); i++)
+                {
+                    var item = itemsList[i];
+                    <MudItem xs="2">
+                        <div class="thumbnail-wrapper">
+                            <MudImage Src="@item.Url"
+                                      Width="100"
+                                      Height="100"
+                                      ObjectFit="@ObjectFit.Cover"
+                                      Class="@(item == SelectedImage ? "thumbnail selected" : "thumbnail")"
+                                      Elevation="@(item == SelectedImage ? 8 : 2)"
+                                      @onclick="@(() => SelectImage(item))"
+                                      draggable="false" />
+                        </div>
+                    </MudItem>
+                }
+            </MudGrid>
+
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                           OnClick="NextThumb"
+                           Disabled="@IsNextDisabled"
+                           Class="@GetArrowClass()" />
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public IEnumerable<ICarouselImage> Items { get; set; } = Enumerable.Empty<ICarouselImage>();
+    [Parameter] public int VisibleCount { get; set; } = 5;
+
+    private int startIndex = 0;
+    private ICarouselImage? SelectedImage;
+
+    // Internal list for indexing
+    private List<ICarouselImage> itemsList = new();
+
+    // helper
+    private int MaxStart => Math.Max(0, itemsList.Count - VisibleCount);
+    private bool IsPrevDisabled => startIndex <= 0;
+    private bool IsNextDisabled => startIndex >= MaxStart;
+
+    protected override void OnParametersSet()
+    {
+        // materialize enumerable once per parameter set
+        itemsList = Items?.ToList() ?? new List<ICarouselImage>();
+
+        // clamp startIndex to valid range
+        startIndex = Math.Clamp(startIndex, 0, MaxStart);
+
+        // ensure SelectedImage points to an item in itemsList
+        if (itemsList.Count == 0)
+        {
+            SelectedImage = null;
+            return;
+        }
+
+        if (SelectedImage == null ||
+            !itemsList.Any(x => AreSameImage(x, SelectedImage)))
+        {
+            SelectedImage = itemsList[0];
+            // ensure selected is visible
+            startIndex = Math.Clamp(startIndex, 0, MaxStart);
+        }
+    }
+
+    private void PrevThumb()
+    {
+        if (startIndex > 0)
+        {
+            startIndex = Math.Max(0, startIndex - 1);
+        }
+    }
+
+    private void NextThumb()
+    {
+        if (startIndex < MaxStart)
+        {
+            startIndex = Math.Min(MaxStart, startIndex + 1);
+        }
+    }
+
+    private void SelectImage(ICarouselImage item)
+    {
+        // set selected
+        SelectedImage = item;
+
+        // find index (try reference or Url match)
+        int idx = itemsList.FindIndex(x => AreSameImage(x, item));
+        if (idx < 0) idx = 0;
+
+        // keep selected visible
+        if (idx < startIndex)
+            startIndex = idx;
+        else if (idx >= startIndex + VisibleCount)
+            startIndex = Math.Clamp(idx - (VisibleCount - 1), 0, MaxStart);
+    }
+
+    private bool AreSameImage(ICarouselImage a, ICarouselImage b)
+    {
+        if (a is null || b is null) return false;
+
+        // Prefer Id if present, fallback to Url equality
+        var aGuid = GetGuidId(a);
+        var bGuid = GetGuidId(b);
+        if (aGuid != Guid.Empty && bGuid != Guid.Empty)
+            return aGuid == bGuid;
+
+        // else compare Urls (case-insensitive)
+        return string.Equals(a.Url?.Trim(), b.Url?.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    // try to read a Guid Id property if available (AuctionItemImage likely has one)
+    private Guid GetGuidId(ICarouselImage img)
+    {
+        try
+        {
+            // if interface exposes Id, cast and return
+            var prop = img.GetType().GetProperty("Id");
+            if (prop != null && prop.PropertyType == typeof(Guid))
+            {
+                return (Guid)prop.GetValue(img)!;
+            }
+        }
+        catch { /* swallow reflection errors */ }
+        return Guid.Empty;
+    }
+
+    private string GetArrowClass() => itemsList.Count <= VisibleCount ? "arrow-button hidden" : "arrow-button";
+}

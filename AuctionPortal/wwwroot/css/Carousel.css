@@ -1,0 +1,38 @@
+﻿.thumbnail-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    user-select: none; /* Prevent text/image selection */
+}
+
+.thumbnail {
+    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: border 150ms ease, box-shadow 150ms ease, transform 120ms ease;
+    cursor: pointer;
+    object-fit: cover;
+    user-select: none; /* Prevent text/image selection */
+    -webkit-user-drag: none; /* Prevent dragging in WebKit browsers */
+    pointer-events: auto; /* Ensure clicking still works */
+}
+
+    .thumbnail:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .thumbnail.selected {
+        border: 3px solid #1976d2;
+        box-shadow: 0 6px 20px rgba(25,118,210,0.25), /* glow */
+        inset 0 0 0 3px #1976d2; /* solid blue square border */
+        transform: translateY(-1px);
+    }
+
+.arrow-button {
+    visibility: visible;
+}
+
+    .arrow-button.hidden {
+        visibility: hidden;
+    }
