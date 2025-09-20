@@ -1,32 +1,30 @@
-using AuctionPortal.Components;
-using MudBlazor.Services;
+using AuctionPortal.Data;
+using AuctionPortal.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add MudBlazor services
-builder.Services.AddMudServices();
-
-// Add services to the container.
+// Add Razor / Interactive Server Components
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+       .AddInteractiveServerComponents();
 
+// Configure Services
+builder.Services.ConfigureDatabase(builder.Configuration);
+builder.Services.ConfigureHttpClient();
+builder.Services.ConfigureMudBlazor();
+builder.Services.ConfigureAuctionServices();
+builder.Services.ConfigureFormOptions();
+builder.Services.ConfigureDataProtection("/app/keys", "/app/certs/dataprotection.pfx", "certPassword");
+
+// Configure Logging
+builder.Logging.ConfigureLogging();
+
+// Build app
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+// Apply Migrations
+app.ApplyDatabaseMigrations<AuctionDbContext>();
 
-app.UseHttpsRedirection();
-
-
-app.UseAntiforgery();
-
-app.MapStaticAssets();
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+// Configure HTTP pipeline
+app.ConfigurePipeline();
 
 app.Run();

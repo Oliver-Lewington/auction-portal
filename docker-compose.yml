@@ -1,0 +1,38 @@
+services:
+  auction-portal:
+    depends_on:
+      - auction_portal_postgres
+    build:
+      context: .
+      target: production
+      dockerfile: AuctionPortal/Dockerfile
+    image: auction-portal
+    container_name: auction-portal
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+    ports:
+      - "5066:8080"
+      - "7055:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      
+  auction_portal_postgres:
+    image: postgres:15
+    container_name: auction_portal_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auction_portal
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ppp
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
