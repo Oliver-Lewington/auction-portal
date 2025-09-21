@@ -1,20 +1,35 @@
-﻿.thumbnail-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    user-select: none; /* Prevent text/image selection */
+﻿.main-image {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    user-select: none;
 }
+
+.thumbnail-strip {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    scroll-behavior: smooth;
+    display:flex; overflow-x:auto; gap:8px; scroll-behavior:smooth;
+}
+
+    .thumbnail-strip::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .thumbnail-strip::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.3);
+        border-radius: 3px;
+    }
 
 .thumbnail {
     border: 2px solid transparent;
     border-radius: 8px;
-    transition: border 150ms ease, box-shadow 150ms ease, transform 120ms ease;
     cursor: pointer;
     object-fit: cover;
-    user-select: none; /* Prevent text/image selection */
-    -webkit-user-drag: none; /* Prevent dragging in WebKit browsers */
-    pointer-events: auto; /* Ensure clicking still works */
+    transition: border 150ms ease, box-shadow 150ms ease, transform 120ms ease;
+    user-select: none;
 }
 
     .thumbnail:hover {
@@ -23,16 +38,7 @@
     }
 
     .thumbnail.selected {
-        border: 3px solid #1976d2;
-        box-shadow: 0 6px 20px rgba(25,118,210,0.25), /* glow */
-        inset 0 0 0 3px #1976d2; /* solid blue square border */
+        border: 3px solid #0596FF; /* highlight */
+        box-shadow: 0 6px 20px rgba(5, 150, 255, 0.25);
         transform: translateY(-1px);
-    }
-
-.arrow-button {
-    visibility: visible;
-}
-
-    .arrow-button.hidden {
-        visibility: hidden;
     }
