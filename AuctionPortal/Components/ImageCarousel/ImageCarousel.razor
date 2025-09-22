@@ -1,0 +1,64 @@
+﻿@using MudBlazor
+
+<link href="css/carousel.css" rel="stylesheet" />
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-6">
+    <MudPaper Class="pa-6" Elevation="6" Style="border-radius:16px;">
+
+        @if (itemsList.Count == 0)
+        {
+            <div class="d-flex justify-center align-center no-images-placeholder" style="height:200px;">
+                <MudText Typo="Typo.h6" Color="Color.Secondary">No images uploaded</MudText>
+            </div>
+        }
+        else
+        {
+            <!-- Main Image -->
+            <div class="d-flex justify-center mb-3">
+                <MudImage Src="@SelectedImage?.Url"
+                          Alt="@SelectedImage?.Alt"
+                          Elevation="25"
+                          Class="rounded-lg cursor-pointer main-image" />
+            </div>
+
+            <!-- Thumbnail Strip -->
+            <div class="d-flex justify-center align-center">
+                <div class="thumbnail-strip mx-2">
+                    @foreach (var item in itemsList)
+                    {
+                        <MudImage Src="@item.Url"
+                                  Width="80"
+                                  Height="80"
+                                  ObjectFit="ObjectFit.Cover"
+                                  Class="@(item == SelectedImage ? "thumbnail selected" : "thumbnail")"
+                                  Elevation="@(item == SelectedImage ? 8 : 2)"
+                                  @onclick="@(() => SelectImage(item))"
+                                  draggable="false" />
+                    }
+                </div>
+            </div>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public IEnumerable<ICarouselImage> Items { get; set; } = Enumerable.Empty<ICarouselImage>();
+
+    private List<ICarouselImage> itemsList = new();
+    private ICarouselImage? SelectedImage;
+
+    protected override void OnParametersSet()
+    {
+        itemsList = Items?.ToList() ?? new List<ICarouselImage>();
+
+        if (itemsList.Count == 0)
+            SelectedImage = null;
+        else if (SelectedImage == null || !itemsList.Contains(SelectedImage))
+            SelectedImage = itemsList[0];
+    }
+
+    private void SelectImage(ICarouselImage item)
+    {
+        SelectedImage = item;
+    }
+}
