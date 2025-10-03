@@ -1,27 +1,143 @@
 ﻿@page "/auction/create-auction-item"
 @using AuctionPortal.Data.Models
 @using AuctionPortal.Components.ImageCarousel
+@inject ISnackbar Snackbar
 
-<PageTitle>Create an Auction Item</PageTitle>
+<PageTitle>Create Auction Item</PageTitle>
 
-<ImageCarousel Items="MyImages" />
-          
+<MudGrid>
+    <!-- LEFT SIDE: Images / Upload -->
+    <MudItem xs="12" md="5">
+        @if (AuctionItem.Images.Any())
+        {
+            <ImageCarousel Items="AuctionItem.Images
+                                           .Select(img => new CarouselImage { Id = img.Id, Url = img.Url })
+                                           .ToList()" />
+
+            <!-- Keep upload visible under carousel -->
+            <MudDivider Class="my-4" />
+        }
+        else
+        {
+        }
+    </MudItem>
+
+    <!-- RIGHT SIDE: Form -->
+    <MudItem xs="12" md="7">
+        <MudPaper Class="pa-4">
+            <MudForm @ref="form" Model="@AuctionItem" OnValidSubmit="HandleValidSubmit">
+                <MudTextField Label="Title" For="@(() => AuctionItem.Title)" Required="true" />
+                <MudTextField Label="Description" For="@(() => AuctionItem.Description)" Lines="4" Required="true" />
+                <MudNumericField T="decimal" Label="Starting Price" For="@(() => AuctionItem.StartingPrice)" Required="true" />
+                <MudNumericField T="decimal" Label="Reserve Price (optional)" For="@(() => AuctionItem.ReservePrice)" />
+
+                <MudButton Type="Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">
+                    Create Auction Item
+                </MudButton>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
 @code {
-    private List<CarouselImage> MyImages = new()
+    private MudForm form = default!;
+    private AuctionItem AuctionItem = new()
     {
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=1" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=2" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=3" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=4" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=5" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=6" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=7" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=8" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=9" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=10" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=11" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=12" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=13" },
-        new() { Id = Guid.NewGuid(), Url = "https://placehold.co/600x400?text=14" },
+        Id = Guid.NewGuid(),
+        Title = string.Empty,
+        Description = string.Empty,
+        StartingPrice = 0,
+        ReservePrice = 0,
+        Images = new()
     };
+
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+    private string _dragClass = DefaultDragClass;
+    private const string DefaultDragClass =
+        "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+
+    private RenderFragment UploadSection => __builder =>
+    {
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                       @ref="_fileUpload"
+                       AppendMultipleFiles
+                       Hidden="false"
+                       InputClass="file-upload-input"
+                       ErrorText=""
+                       @ondrop="ClearDragClass"
+                       @ondragenter="SetDragClass"
+                       @ondragleave="ClearDragClass"
+                       @ondragend="ClearDragClass">
+            <ActivatorContent>
+                <MudPaper Height="300px" Outlined="true" Class="@_dragClass">
+                    <MudText Typo="Typo.h6">
+                        Drag and drop files here or click
+                    </MudText>
+                    @foreach (var file in _fileUpload?.Files?.Select(f => f.Name) ?? Enumerable.Empty<string>())
+                    {
+                        <MudChip T="string" Color="Color.Dark" Text="@file" />
+                    }
+                </MudPaper>
+            </ActivatorContent>
+        </MudFileUpload>
+
+        <MudToolBar Gutters="false" Class="relative d-flex justify-end gap-4 mt-2">
+            <MudButton Color="Color.Primary" OnClick="OpenFilePickerAsync" Variant="Variant.Filled">
+                Open file picker
+            </MudButton>
+            <MudButton Color="Color.Primary" OnClick="Upload" Variant="Variant.Filled"
+                       Disabled="@(_fileUpload?.Files == null || !_fileUpload.Files.Any())">
+                Upload
+            </MudButton>
+            <MudButton Color="Color.Error" OnClick="ClearAsync" Variant="Variant.Filled"
+                       Disabled="@(_fileUpload?.Files == null || !_fileUpload.Files.Any())">
+                Clear
+            </MudButton>
+        </MudToolBar>
+    };
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        // Just preview file names, actual upload handled in Upload()
+        await Task.CompletedTask;
+    }
+
+    private void Upload()
+    {
+        if (_fileUpload?.Files != null)
+        {
+            foreach (var file in _fileUpload.Files)
+            {
+                var url = $"https://placehold.co/600x400?text={file.Name}"; // TODO: save file properly
+                AuctionItem.Images.Add(new AuctionItemImage
+                {
+                    Id = Guid.NewGuid(),
+                    Url = url
+                });
+            }
+            Snackbar.Add($"{_fileUpload.Files.Count} file(s) uploaded!", Severity.Success);
+        }
+    }
+
+
+    private Task OpenFilePickerAsync()
+        => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private Task ClearAsync()
+        => _fileUpload?.ClearAsync() ?? Task.CompletedTask;
+
+    private void SetDragClass()
+        => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+        => _dragClass = DefaultDragClass;
+
+    private async Task HandleValidSubmit()
+    {
+        Upload(); // ensure files are linked to AuctionItem
+        Snackbar.Add($"Auction item '{AuctionItem.Title}' created with {AuctionItem.Images.Count} images.", Severity.Success);
+
+        // TODO: persist AuctionItem to database
+        Console.WriteLine($"Created item: {AuctionItem.Title}");
+    }
 }
