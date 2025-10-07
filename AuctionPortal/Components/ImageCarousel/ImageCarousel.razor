@@ -2,47 +2,46 @@
 
 <link href="css/carousel.css" rel="stylesheet" />
 
-<MudContainer>
-    <MudPaper Class="pa-6" Elevation="6">
+<MudContainer Class="pa-6">
+    @if (itemsList.Count == 0)
+    {
+        <div class="d-flex justify-center align-center no-images-placeholder" style="height:200px;">
+            <MudText Typo="Typo.h6" Color="Color.Secondary">No images uploaded</MudText>
+        </div>
+    }
+    else
+    {
+        <!-- FIXED main image box -->
+        <div class="main-image-frame mb-3">
+            <MudImage Src="@SelectedImage?.Url"
+                      Alt="@SelectedImage?.Alt"
+                      Class="main-image"
+                      ObjectFit="ObjectFit.Contain"
+                      Elevation="25" />
+        </div>
 
-        @if (itemsList.Count == 0)
-        {
-            <div class="d-flex justify-center align-center no-images-placeholder" style="height:200px;">
-                <MudText Typo="Typo.h6" Color="Color.Secondary">No images uploaded</MudText>
+        <!-- Thumbnail strip -->
+        <div class="d-flex justify-center align-center">
+            <div class="thumbnail-strip mx-2">
+                @foreach (var item in itemsList)
+                {
+                    <MudImage Src="@item.Url"
+                              Width="80"
+                              Height="80"
+                              ObjectFit="ObjectFit.Cover"
+                              Class="@(item == SelectedImage ? "thumbnail selected" : "thumbnail")"
+                              Elevation="@(item == SelectedImage ? 8 : 2)"
+                              @onclick="@(() => SelectImage(item))"
+                              draggable="false" />
+                }
             </div>
-        }
-        else
-        {
-            <!-- Main Image -->
-            <div class="d-flex justify-center mb-3">
-                <MudImage Src="@SelectedImage?.Url"
-                          Alt="@SelectedImage?.Alt"
-                          Elevation="25"
-                          Class="rounded-lg cursor-pointer main-image" />
-            </div>
-
-            <!-- Thumbnail Strip -->
-            <div class="d-flex justify-center align-center">
-                <div class="thumbnail-strip mx-2">
-                    @foreach (var item in itemsList)
-                    {
-                        <MudImage Src="@item.Url"
-                                  Width="80"
-                                  Height="80"
-                                  ObjectFit="ObjectFit.Cover"
-                                  Class="@(item == SelectedImage ? "thumbnail selected" : "thumbnail")"
-                                  Elevation="@(item == SelectedImage ? 8 : 2)"
-                                  @onclick="@(() => SelectImage(item))"
-                                  draggable="false" />
-                    }
-                </div>
-            </div>
-        }
-    </MudPaper>
+        </div>
+    }
 </MudContainer>
 
 @code {
     [Parameter] public IEnumerable<ICarouselImage> Items { get; set; } = Enumerable.Empty<ICarouselImage>();
+    [Parameter] public EventCallback<ICarouselImage?> SelectedImageChanged { get; set; }
 
     private List<ICarouselImage> itemsList = new();
     private ICarouselImage? SelectedImage;
@@ -57,8 +56,9 @@
             SelectedImage = itemsList[0];
     }
 
-    private void SelectImage(ICarouselImage item)
+    private async Task SelectImage(ICarouselImage item)
     {
         SelectedImage = item;
+        await SelectedImageChanged.InvokeAsync(SelectedImage);
     }
 }

@@ -1,4 +1,4 @@
-﻿@page "/auction/create-auction-item"
+﻿@page "/auction/create-item"
 @using AuctionPortal.Data.Models
 @using AuctionPortal.Components.ImageCarousel
 @inject ISnackbar Snackbar
@@ -8,136 +8,87 @@
 <MudGrid>
     <!-- LEFT SIDE: Images / Upload -->
     <MudItem xs="12" md="5">
-        @if (AuctionItem.Images.Any())
+        <MudText Typo="Typo.h5">Images</MudText>
+        @if (_imageUrls.Any())
         {
-            <ImageCarousel Items="AuctionItem.Images
-                                           .Select(img => new CarouselImage { Id = img.Id, Url = img.Url })
-                                           .ToList()" />
-
-            <!-- Keep upload visible under carousel -->
-            <MudDivider Class="my-4" />
+            <ImageCarousel Items="_imageUrls.Select(img => new CarouselImage { Id = Guid.NewGuid(), Url = img })" />
         }
         else
         {
+            <MudText>There are no images uploaded please upload.</MudText>
         }
+
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            <MudIconButton Icon="@Icons.Material.Filled.AccessAlarm"></MudIconButton>
+            <MudToggleIconButton Icon="@Icons.Material.Filled.RestoreFromTrash" Color="@Color.Error"
+                                 ToggledIcon="@Icons.Material.Filled.AlarmOn" ToggledColor="@Color.Success" />
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>" Accept=".png, .jpg" FilesChanged="UploadFiles" MaximumFileCount="100">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.CloudUpload">
+                        Upload Files
+                    </MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudButtonGroup>
     </MudItem>
 
     <!-- RIGHT SIDE: Form -->
     <MudItem xs="12" md="7">
-        <MudPaper Class="pa-4">
-            <MudForm @ref="form" Model="@AuctionItem" OnValidSubmit="HandleValidSubmit">
-                <MudTextField Label="Title" For="@(() => AuctionItem.Title)" Required="true" />
-                <MudTextField Label="Description" For="@(() => AuctionItem.Description)" Lines="4" Required="true" />
-                <MudNumericField T="decimal" Label="Starting Price" For="@(() => AuctionItem.StartingPrice)" Required="true" />
-                <MudNumericField T="decimal" Label="Reserve Price (optional)" For="@(() => AuctionItem.ReservePrice)" />
-
-                <MudButton Type="Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">
-                    Create Auction Item
-                </MudButton>
-            </MudForm>
+        <MudText Typo="Typo.h5">Details</MudText>
+        <MudTextField @bind-Value="Title" Label="Title" Variant="Variant.Outlined"></MudTextField>
+        <MudTextField T="string" Label="Description" Variant="Variant.Outlined" Text="@Description" Lines="3" />
+        <MudPaper Class="pa-3">
+            <MudText Typo="Typo.subtitle2">Tags</MudText>
+            <MudChipSet @bind-SelectedValues="_selectedTags" SelectionMode="SelectionMode.MultiSelection" CheckMark="false" Variant="Variant.Text" Color="Color.Info">
+                <MudChip Value="@("Event")" />
+                <MudChip Value="@("Tech")" />
+                <MudChip Value="@("Wellbeing")" />
+                <MudChip Value="@("Trip Away")" />
+                <MudChip Value="@("Premium")" />
+            </MudChipSet>
         </MudPaper>
+        
+        <MudTextField @bind-Value="StartingBid" Label="Starting Bid" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CurrencyPound" AdornmentColor="Color.Info" />
     </MudItem>
 </MudGrid>
 
 @code {
-    private MudForm form = default!;
-    private AuctionItem AuctionItem = new()
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public double? StartingBid { get; set; }
+
+    private IReadOnlyCollection<string>? _selectedTags;
+    private readonly ICollection<IBrowserFile> _files = new List<IBrowserFile>();
+    private readonly List<string> _imageUrls = new();
+
+    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
     {
-        Id = Guid.NewGuid(),
-        Title = string.Empty,
-        Description = string.Empty,
-        StartingPrice = 0,
-        ReservePrice = 0,
-        Images = new()
-    };
-
-    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
-    private string _dragClass = DefaultDragClass;
-    private const string DefaultDragClass =
-        "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
-
-    private RenderFragment UploadSection => __builder =>
-    {
-        <MudFileUpload T="IReadOnlyList<IBrowserFile>"
-                       @ref="_fileUpload"
-                       AppendMultipleFiles
-                       Hidden="false"
-                       InputClass="file-upload-input"
-                       ErrorText=""
-                       @ondrop="ClearDragClass"
-                       @ondragenter="SetDragClass"
-                       @ondragleave="ClearDragClass"
-                       @ondragend="ClearDragClass">
-            <ActivatorContent>
-                <MudPaper Height="300px" Outlined="true" Class="@_dragClass">
-                    <MudText Typo="Typo.h6">
-                        Drag and drop files here or click
-                    </MudText>
-                    @foreach (var file in _fileUpload?.Files?.Select(f => f.Name) ?? Enumerable.Empty<string>())
-                    {
-                        <MudChip T="string" Color="Color.Dark" Text="@file" />
-                    }
-                </MudPaper>
-            </ActivatorContent>
-        </MudFileUpload>
-
-        <MudToolBar Gutters="false" Class="relative d-flex justify-end gap-4 mt-2">
-            <MudButton Color="Color.Primary" OnClick="OpenFilePickerAsync" Variant="Variant.Filled">
-                Open file picker
-            </MudButton>
-            <MudButton Color="Color.Primary" OnClick="Upload" Variant="Variant.Filled"
-                       Disabled="@(_fileUpload?.Files == null || !_fileUpload.Files.Any())">
-                Upload
-            </MudButton>
-            <MudButton Color="Color.Error" OnClick="ClearAsync" Variant="Variant.Filled"
-                       Disabled="@(_fileUpload?.Files == null || !_fileUpload.Files.Any())">
-                Clear
-            </MudButton>
-        </MudToolBar>
-    };
-
-    private async Task HandleFileSelected(InputFileChangeEventArgs e)
-    {
-        // Just preview file names, actual upload handled in Upload()
-        await Task.CompletedTask;
-    }
-
-    private void Upload()
-    {
-        if (_fileUpload?.Files != null)
+        foreach (var file in files)
         {
-            foreach (var file in _fileUpload.Files)
+            _files.Add(file);
+
+            if (!file.ContentType.StartsWith("image/"))
+                return;
+
+            try
             {
-                var url = $"https://placehold.co/600x400?text={file.Name}"; // TODO: save file properly
-                AuctionItem.Images.Add(new AuctionItemImage
-                {
-                    Id = Guid.NewGuid(),
-                    Url = url
-                });
+
+                using var stream = file.OpenReadStream(maxAllowedSize: 10_000_000); // 10MB limit
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var base64 = Convert.ToBase64String(ms.ToArray());
+                var imageUrl = $"data:{file.ContentType};base64,{base64}";
+                _imageUrls.Add(imageUrl);
+
             }
-            Snackbar.Add($"{_fileUpload.Files.Count} file(s) uploaded!", Severity.Success);
+            catch (Exception ex)
+            {
+
+            }
         }
-    }
 
-
-    private Task OpenFilePickerAsync()
-        => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
-
-    private Task ClearAsync()
-        => _fileUpload?.ClearAsync() ?? Task.CompletedTask;
-
-    private void SetDragClass()
-        => _dragClass = $"{DefaultDragClass} mud-border-primary";
-
-    private void ClearDragClass()
-        => _dragClass = DefaultDragClass;
-
-    private async Task HandleValidSubmit()
-    {
-        Upload(); // ensure files are linked to AuctionItem
-        Snackbar.Add($"Auction item '{AuctionItem.Title}' created with {AuctionItem.Images.Count} images.", Severity.Success);
-
-        // TODO: persist AuctionItem to database
-        Console.WriteLine($"Created item: {AuctionItem.Title}");
+        StateHasChanged();
     }
 }
