@@ -1,8 +1,16 @@
-﻿namespace AuctionPortal.Data.Models;
+﻿using AuctionPortal.Components.ImageCarousel;
 
-public class AuctionItemImage
+namespace AuctionPortal.Data.Models;
+
+public class AuctionItemImage : ICarouselImage
 {
-    public Guid Id { get; set; }
-    public string Url { get; set; } = null!;
-}
+    public AuctionItemImage(string url)
+    {
+        Url = url;
+    }
 
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Url { get; set; } = null!;
+    public string? Alt { get; set; }
+    public string? Caption { get; set; }
+}

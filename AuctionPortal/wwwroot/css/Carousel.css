@@ -1,8 +1,6 @@
 ﻿/* === Main fixed-size container === */
 .main-image-frame {
-    width: 100%;
-    max-width: 600px;
-    height: 400px; /* stays the same for all images */
+    height: 20rem; /* stays the same for all images */
     margin: 0 auto;
     border-radius: 16px;
     background-color: #1e1e1e10;
@@ -27,7 +25,7 @@
     overflow-x: auto;
     gap: 0.5rem;
     padding: 0.25rem;
-    max-width: 600px;
+    max-width: 1000px;
     scrollbar-width: thin;
     scrollbar-color: #ccc transparent;
 }
@@ -59,22 +57,10 @@
 
 /* === Responsive breakpoints === */
 @media (max-width: 768px) {
-    .main-image-frame {
-        max-width: 90%;
-        height: 300px; /* smaller fixed height */
-    }
 
-    .thumbnail-strip {
-        max-width: 90%;
-    }
 }
 
 @media (max-width: 480px) {
-    .main-image-frame {
-        height: 220px;
-        max-width: 100%;
-    }
-
     .thumbnail-strip img {
         width: 60px !important;
         height: 60px !important;

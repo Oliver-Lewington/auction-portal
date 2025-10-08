@@ -1,37 +1,40 @@
 ﻿@using MudBlazor
 
-<link href="css/carousel.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="css/carousel.css">
 
-<MudContainer Class="pa-6">
+<MudContainer Class="pa-1">
     @if (itemsList.Count == 0)
     {
-        <div class="d-flex justify-center align-center no-images-placeholder" style="height:200px;">
-            <MudText Typo="Typo.h6" Color="Color.Secondary">No images uploaded</MudText>
+        <div class="main-image-frame mb-3">
+            <MudText Typo="Typo.h6">No images uploaded</MudText>
         </div>
     }
     else
     {
-        <!-- FIXED main image box -->
-        <div class="main-image-frame mb-3">
+        <!-- Main image display -->
+        <div class="main-image-frame mb-3" style="overflow:hidden;">
             <MudImage Src="@SelectedImage?.Url"
                       Alt="@SelectedImage?.Alt"
                       Class="main-image"
                       ObjectFit="ObjectFit.Contain"
-                      Elevation="25" />
+                      Elevation="25"
+                      Style="@($"transform: scale({ZoomLevel}); transition: transform 0.25s ease;")" />
         </div>
 
         <!-- Thumbnail strip -->
         <div class="d-flex justify-center align-center">
             <div class="thumbnail-strip mx-2">
-                @foreach (var item in itemsList)
+                @foreach (var tuple in itemsList.Select((itm, idx) => (itm, idx)))
                 {
+                    var item = tuple.itm;
+                    var idx = tuple.idx;
                     <MudImage Src="@item.Url"
                               Width="80"
                               Height="80"
                               ObjectFit="ObjectFit.Cover"
-                              Class="@(item == SelectedImage ? "thumbnail selected" : "thumbnail")"
-                              Elevation="@(item == SelectedImage ? 8 : 2)"
-                              @onclick="@(() => SelectImage(item))"
+                              Class="@(idx == SelectedIndex ? "thumbnail selected" : "thumbnail")"
+                              Elevation="@(idx == SelectedIndex ? 8 : 2)"
+                              @onclick="@(() => OnThumbnailClick(idx))"
                               draggable="false" />
                 }
             </div>
@@ -41,24 +44,39 @@
 
 @code {
     [Parameter] public IEnumerable<ICarouselImage> Items { get; set; } = Enumerable.Empty<ICarouselImage>();
-    [Parameter] public EventCallback<ICarouselImage?> SelectedImageChanged { get; set; }
+
+    // Two-way binding support for external selection
+    [Parameter] public int SelectedIndex { get; set; } = 0;
+    [Parameter] public EventCallback<int> SelectedIndexChanged { get; set; }
+
+    [Parameter] public EventCallback<int> OnImageSelected { get; set; }
+
+    [Parameter] public double ZoomLevel { get; set; } = 1.0;
 
     private List<ICarouselImage> itemsList = new();
-    private ICarouselImage? SelectedImage;
+    private ICarouselImage? SelectedImage =>
+        (SelectedIndex >= 0 && SelectedIndex < itemsList.Count) ? itemsList[SelectedIndex] : null;
 
     protected override void OnParametersSet()
     {
         itemsList = Items?.ToList() ?? new List<ICarouselImage>();
 
-        if (itemsList.Count == 0)
-            SelectedImage = null;
-        else if (SelectedImage == null || !itemsList.Contains(SelectedImage))
-            SelectedImage = itemsList[0];
+        // Clamp SelectedIndex if it’s outside range
+        if (SelectedIndex < 0 || SelectedIndex >= itemsList.Count)
+            SelectedIndex = itemsList.Count > 0 ? 0 : -1;
     }
 
-    private async Task SelectImage(ICarouselImage item)
+    private async Task OnThumbnailClick(int index)
     {
-        SelectedImage = item;
-        await SelectedImageChanged.InvokeAsync(SelectedImage);
+        if (index < 0 || index >= itemsList.Count) return;
+
+        SelectedIndex = index;
+        StateHasChanged();
+
+        if (SelectedIndexChanged.HasDelegate)
+            await SelectedIndexChanged.InvokeAsync(index);
+
+        if (OnImageSelected.HasDelegate)
+            await OnImageSelected.InvokeAsync(index);
     }
 }

@@ -1,0 +1,23 @@
+﻿
+    <MudTextField @bind-Value="Title" Label="Title" Variant="Variant.Outlined" FullWidth="true" />
+    <MudTextField @bind-Value="Description" Label="Description" Variant="Variant.Outlined" Lines="4" FullWidth="true" />
+
+    <MudText Typo="Typo.subtitle2">Tags</MudText>
+    <MudChipSet @bind-SelectedValues="_selectedTags" SelectionMode="SelectionMode.MultiSelection" CheckMark="false" Variant="Variant.Text" Color="Color.Info">
+        <MudChip Value="@("Event")" />
+        <MudChip Value="@("Tech")" />
+        <MudChip Value="@("Wellbeing")" />
+        <MudChip Value="@("Trip Away")" />
+        <MudChip Value="@("Premium")" />
+    </MudChipSet>
+
+@*     <MudTextField @bind-Value="StartingBid" Label="Starting Bid" Variant="Variant.Outlined"
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CurrencyPound"
+                  AdornmentColor="Color.Info" FullWidth="true" /> *@
+
+@code {
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+
+    private IReadOnlyCollection<string>? _selectedTags;
+}

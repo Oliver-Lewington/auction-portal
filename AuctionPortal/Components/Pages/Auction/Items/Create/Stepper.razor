@@ -1,0 +1,68 @@
+﻿@page "/auction/create-item"
+
+@using AuctionPortal.Components.ImageCarousel
+@using AuctionPortal.Data.Models
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4">
+    <MudText Typo="Typo.h4">@currentStepTitle</MudText>
+
+    <MudDivider Class="my-4" />
+
+    <MudStack Spacing="3">   
+        <!-- Conditional content above the stepper -->
+        @if (ActiveIndex == 0)
+        {
+            <Images CarouselImages="_carouselImages" />
+        }
+        else if (ActiveIndex == 1)
+        {
+            <Details />
+        }
+        else if (ActiveIndex == 2)
+        {
+        }
+    </MudStack>
+    <!-- Stepper -->
+    <MudStepper @bind-ActiveIndex="ActiveIndex"
+                NonLinear="true"
+                Class="mt-4">
+        <MudStep Title="Add images" />
+        <MudStep Title="Describe the item" />
+        <MudStep Title="Misc" SecondaryText="optional" CompletedChanged="OnCompletedChanged"/>
+    </MudStepper>
+</MudContainer>
+
+@code {
+    private AuctionItem _auctionItem { get; set; } = new();
+    private List<ICarouselImage> _carouselImages { get; set; } = new();
+
+    private int _activeIndex = 0;
+    private string currentStepTitle = "Add images";
+
+    private int ActiveIndex
+    {
+        get => _activeIndex;
+        set
+        {
+            if (_activeIndex == value) return;
+            _activeIndex = value;
+            UpdateCurrentStepTitle(_activeIndex);
+        }
+    }
+
+    private void UpdateCurrentStepTitle(int index) =>
+        currentStepTitle = index switch
+        {
+            0 => "Add images",
+            1 => "Describe the item",
+            2 => "Miscellaneous Info",
+            _ => "Unknown"
+        };
+
+    private Task OnCompletedChanged(bool args)
+    {
+        return Task.CompletedTask;
+
+    }
+}
