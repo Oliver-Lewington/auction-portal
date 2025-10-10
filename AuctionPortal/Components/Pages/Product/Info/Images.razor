@@ -1,0 +1,175 @@
+﻿@using AuctionPortal.Components.ImageCarousel
+@using AuctionPortal.Data.Models
+@using AuctionPortal.Dialogs
+@using MudBlazor
+
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudPaper Class="pa-6 rounded-lg elevation-3">
+
+    <!-- Toolbar -->
+    <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
+        <!-- Upload -->
+        <MudTooltip Text="Upload image(s)">
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                           Accept=".png, .jpg, .jpeg"
+                           FilesChanged="UploadFiles"
+                           MaximumFileCount="100">
+                <ActivatorContent>
+                    <MudIconButton Color="Color.Primary"
+                                   Icon="@Icons.Material.Filled.CloudUpload" />
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudTooltip>
+
+        <!-- Delete -->
+        <MudTooltip Text="Delete selected image">
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                           Color="Color.Error"
+                           Disabled="@(!_hasSelected)"
+                           OnClick="DeleteSelectedImage" />
+        </MudTooltip>
+
+        <!-- Zoom In -->
+        <MudTooltip Text="Zoom In">
+            <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"
+                           Disabled="@(!_hasSelected)"
+                           OnClick="ZoomIn" />
+        </MudTooltip>
+
+        <!-- Zoom Out -->
+        <MudTooltip Text="Zoom Out">
+            <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"
+                           Disabled="@(!_hasSelected || zoomLevel <= 1.0)"
+                           OnClick="ZoomOut" />
+        </MudTooltip>
+
+        <!-- Move Left -->
+        <MudTooltip Text="Move Left">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIos"
+                           Disabled="@(!_hasSelected || selectedIndex == 0)"
+                           OnClick="MoveLeft" />
+        </MudTooltip>
+
+        <!-- Move Right -->
+        <MudTooltip Text="Move Right">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowForwardIos"
+                           Disabled="@(!_hasSelected || selectedIndex >= CarouselImages.Count - 1)"
+                           OnClick="MoveRight" />
+        </MudTooltip>
+    </MudToolBar>
+
+    <!-- Image carousel -->
+    <ImageCarousel Images="CarouselImages"
+                   @bind-SelectedIndex="selectedIndex"
+                   ZoomLevel="@zoomLevel" />
+
+</MudPaper>
+
+@code {
+    [Parameter] public List<ICarouselImage> CarouselImages { get; set; } = new();
+    private readonly ICollection<IBrowserFile> _files = new List<IBrowserFile>();
+
+    private int selectedIndex = 0;
+    private double zoomLevel = 1.0;
+
+    private bool _hasSelected => selectedIndex >= 0 && selectedIndex < CarouselImages.Count;
+
+    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        foreach (var file in files)
+        {
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                Snackbar.Add($"{file.Name} is not an image.", Severity.Warning);
+                continue;
+            }
+
+            try
+            {
+                using var stream = file.OpenReadStream(maxAllowedSize: 10_000_000);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var base64 = Convert.ToBase64String(ms.ToArray());
+                var imageUrl = $"data:{file.ContentType};base64,{base64}";
+
+                ICarouselImage image = new ProductImage(imageUrl);
+
+                CarouselImages.Add(image);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error uploading {file.Name}: {ex.Message}", Severity.Error);
+            }
+        }
+
+        Snackbar.Add($"{files.Count} image(s) uploaded.", Severity.Success);
+
+        // Automatically select the first image if none is selected
+        if (!_hasSelected && CarouselImages.Count > 0)
+            selectedIndex = 0;
+
+        StateHasChanged();
+    }
+
+    private async Task DeleteSelectedImage()
+    {
+        if (!_hasSelected)
+            return;
+
+        var parameters = new DialogParameters<DeleteDialog>
+        {
+            { dl => dl.ContentText, "Do you really want to delete this image? This process cannot be undone." },
+            { dl => dl.ButtonText, "Delete" },
+            { dl => dl.Color, Color.Error }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<DeleteDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && result.Canceled)
+            return;
+
+        CarouselImages.RemoveAt(selectedIndex);
+        Snackbar.Add("Image deleted.", Severity.Error);
+
+        if (CarouselImages.Count == 0)
+            selectedIndex = -1;
+        else
+            selectedIndex = Math.Min(selectedIndex, CarouselImages.Count - 1);
+
+        StateHasChanged();
+    }
+
+
+    private void ZoomIn() => zoomLevel = Math.Min(zoomLevel + 0.1, 2.0);
+    private void ZoomOut() => zoomLevel = Math.Max(zoomLevel - 0.1, 0.5);
+
+    private void MoveLeft()
+    {
+        if (!_hasSelected || selectedIndex == 0) return;
+
+        var temp = CarouselImages[selectedIndex];
+        CarouselImages[selectedIndex] = CarouselImages[selectedIndex - 1];
+        CarouselImages[selectedIndex - 1] = temp;
+        selectedIndex--;
+    }
+
+    private void MoveRight()
+    {
+        if (!_hasSelected || selectedIndex >= CarouselImages.Count - 1) return;
+
+        var temp = CarouselImages[selectedIndex];
+        CarouselImages[selectedIndex] = CarouselImages[selectedIndex + 1];
+        CarouselImages[selectedIndex + 1] = temp;
+        selectedIndex++;
+    }
+}

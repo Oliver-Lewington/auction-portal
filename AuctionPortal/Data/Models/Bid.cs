@@ -3,7 +3,7 @@
 public class Bid
 {
     public Guid Id { get; set; }
-    public AuctionItem AuctionItem { get; set; } = null!;
+    public Product AuctionItem { get; set; } = null!;
 
     public User? User { get; set; }
 

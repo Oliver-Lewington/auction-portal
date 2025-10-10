@@ -1,0 +1,68 @@
+﻿/* === Main fixed-size container === */
+.main-image-frame {
+    height: 20rem; /* stays the same for all images */
+    margin: 0 auto;
+    border-radius: 16px;
+    background-color: #1e1e1e10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Ensures image fits *within* the frame */
+.main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Thumbnail strip — scrollable */
+.thumbnail-strip {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    max-width: 1000px;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+}
+
+    .thumbnail-strip::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .thumbnail-strip::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 3px;
+    }
+
+/* Thumbnails — consistent */
+.thumbnail {
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+    .thumbnail:hover {
+        transform: scale(1.05);
+    }
+
+    .thumbnail.selected {
+        outline: 3px solid var(--mud-palette-primary);
+        transform: scale(1.05);
+    }
+
+/* === Responsive breakpoints === */
+@media (max-width: 768px) {
+
+}
+
+@media (max-width: 480px) {
+    .thumbnail-strip img {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}

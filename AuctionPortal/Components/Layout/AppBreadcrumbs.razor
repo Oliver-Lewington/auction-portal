@@ -1,0 +1,52 @@
+﻿@using AuctionPortal.Services
+@using Microsoft.AspNetCore.Components.Routing
+
+@inject NavigationManager NavigationManager
+
+<MudBreadcrumbs Items="_breadcrumbs">
+    <ItemTemplate Context="item">
+        <MudLink Href="@item.Href">@item.Text.ToUpper()</MudLink>
+    </ItemTemplate>
+</MudBreadcrumbs>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new();
+
+    protected override void OnInitialized()
+    {
+        BuildBreadcrumbs();
+        NavigationManager.LocationChanged += (_, __) => BuildBreadcrumbs();
+    }
+
+    private void BuildBreadcrumbs()
+    {
+        var uri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var segments = uri.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var currentPath = string.Empty;
+
+        _breadcrumbs.Clear();
+        _breadcrumbs.Add(new BreadcrumbItem("Home", "/"));
+
+        for (var i = 0; i < segments.Length; i++)
+        { 
+            currentPath += $"/{segments[i]}";
+
+            // Try to resolve title via a route mapping (optional, see next step)
+            var title = RouteTitleService.GetTitle(currentPath.TrimEnd('/')) 
+                        ?? FormatSegment(segments[i]);
+
+            _breadcrumbs.Add(new BreadcrumbItem(title, currentPath, i == segments.Length - 1));
+        }
+
+        StateHasChanged();
+    }
+
+    private static string FormatSegment(string segment)
+    {
+        if (Guid.TryParse(segment, out _))
+            return "Details";
+
+        // Replace dashes and capitalize
+        return string.Join(' ', segment.Split('-')).ToUpperInvariant();
+    }
+}

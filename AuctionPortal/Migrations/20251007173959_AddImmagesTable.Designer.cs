@@ -3,6 +3,7 @@ using System;
 using AuctionPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuctionPortal.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
-    partial class AuctionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251007173959_AddImmagesTable")]
+    partial class AddImmagesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,30 +32,97 @@ namespace AuctionPortal.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("LiveFlag")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Name")
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.ToTable("Auctions");
+                });
+
+            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("FinalBid")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("FinalBidderName")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("ReservePrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("StartingPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionId");
+
+                    b.ToTable("AuctionItems");
+                });
+
+            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionItemImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AuctionItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionItemId");
+
+                    b.ToTable("AuctionItemImages");
                 });
 
             modelBuilder.Entity("AuctionPortal.Data.Models.Bid", b =>
@@ -68,7 +138,7 @@ namespace AuctionPortal.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
@@ -82,80 +152,6 @@ namespace AuctionPortal.Migrations
                     b.ToTable("Bids");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.Product", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuctionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<decimal?>("FinalBid")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("FinalBidderName")
-                        .HasColumnType("text");
-
-                    b.Property<decimal?>("ReservePrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("StartingPrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuctionId");
-
-                    b.ToTable("Product");
-                });
-
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Alt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Caption")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductImage");
-                });
-
             modelBuilder.Entity("AuctionPortal.Data.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -163,7 +159,7 @@ namespace AuctionPortal.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -182,16 +178,34 @@ namespace AuctionPortal.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.ToTable("User");
                 });
 
+            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionItem", b =>
+                {
+                    b.HasOne("AuctionPortal.Data.Models.Auction", "Auction")
+                        .WithMany("Items")
+                        .HasForeignKey("AuctionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Auction");
+                });
+
+            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionItemImage", b =>
+                {
+                    b.HasOne("AuctionPortal.Data.Models.AuctionItem", null)
+                        .WithMany("Images")
+                        .HasForeignKey("AuctionItemId");
+                });
+
             modelBuilder.Entity("AuctionPortal.Data.Models.Bid", b =>
                 {
-                    b.HasOne("AuctionPortal.Data.Models.Product", "AuctionItem")
+                    b.HasOne("AuctionPortal.Data.Models.AuctionItem", "AuctionItem")
                         .WithMany()
                         .HasForeignKey("AuctionItemId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -206,28 +220,12 @@ namespace AuctionPortal.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.Product", b =>
-                {
-                    b.HasOne("AuctionPortal.Data.Models.Auction", null)
-                        .WithMany("Products")
-                        .HasForeignKey("AuctionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImage", b =>
-                {
-                    b.HasOne("AuctionPortal.Data.Models.Product", null)
-                        .WithMany("Images")
-                        .HasForeignKey("ProductId");
-                });
-
             modelBuilder.Entity("AuctionPortal.Data.Models.Auction", b =>
                 {
-                    b.Navigation("Products");
+                    b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.Product", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionItem", b =>
                 {
                     b.Navigation("Images");
                 });
