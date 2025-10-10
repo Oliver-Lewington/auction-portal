@@ -9,9 +9,9 @@
 <MudPaper Class="pa-6 rounded-lg elevation-3">
 
     <!-- Toolbar -->
-    <MudToolBar Dense="true" WrapContent="true">
+    <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
         <!-- Upload -->
-        <MudTooltip Text="Upload CarouselImages">
+        <MudTooltip Text="Upload image(s)">
             <MudFileUpload T="IReadOnlyList<IBrowserFile>"
                            Accept=".png, .jpg, .jpeg"
                            FilesChanged="UploadFiles"
@@ -61,7 +61,7 @@
     </MudToolBar>
 
     <!-- Image carousel -->
-    <ImageCarousel Items="CarouselImages"
+    <ImageCarousel Images="CarouselImages"
                    @bind-SelectedIndex="selectedIndex"
                    ZoomLevel="@zoomLevel" />
 
@@ -94,7 +94,7 @@
                 var base64 = Convert.ToBase64String(ms.ToArray());
                 var imageUrl = $"data:{file.ContentType};base64,{base64}";
 
-                ICarouselImage image = new AuctionItemImage(imageUrl);
+                ICarouselImage image = new ProductImage(imageUrl);
 
                 CarouselImages.Add(image);
             }

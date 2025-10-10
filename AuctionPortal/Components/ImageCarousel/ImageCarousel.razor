@@ -3,7 +3,7 @@
 <link rel="stylesheet" type="text/css" href="css/carousel.css">
 
 <MudContainer Class="pa-1">
-    @if (itemsList.Count == 0)
+    @if (_images.Count == 0)
     {
         <div class="main-image-frame mb-3">
             <MudText Typo="Typo.h6">No images uploaded</MudText>
@@ -24,7 +24,7 @@
         <!-- Thumbnail strip -->
         <div class="d-flex justify-center align-center">
             <div class="thumbnail-strip mx-2">
-                @foreach (var tuple in itemsList.Select((itm, idx) => (itm, idx)))
+                @foreach (var tuple in _images.Select((itm, idx) => (itm, idx)))
                 {
                     var item = tuple.itm;
                     var idx = tuple.idx;
@@ -43,7 +43,7 @@
 </MudContainer>
 
 @code {
-    [Parameter] public IEnumerable<ICarouselImage> Items { get; set; } = Enumerable.Empty<ICarouselImage>();
+    [Parameter] public IEnumerable<ICarouselImage> Images { get; set; } = Enumerable.Empty<ICarouselImage>();
 
     // Two-way binding support for external selection
     [Parameter] public int SelectedIndex { get; set; } = 0;
@@ -53,22 +53,23 @@
 
     [Parameter] public double ZoomLevel { get; set; } = 1.0;
 
-    private List<ICarouselImage> itemsList = new();
+    private List<ICarouselImage> _images = new();
+
     private ICarouselImage? SelectedImage =>
-        (SelectedIndex >= 0 && SelectedIndex < itemsList.Count) ? itemsList[SelectedIndex] : null;
+        (SelectedIndex >= 0 && SelectedIndex < _images.Count) ? _images[SelectedIndex] : null;
 
     protected override void OnParametersSet()
     {
-        itemsList = Items?.ToList() ?? new List<ICarouselImage>();
+        _images = Images?.ToList() ?? new List<ICarouselImage>();
 
         // Clamp SelectedIndex if it’s outside range
-        if (SelectedIndex < 0 || SelectedIndex >= itemsList.Count)
-            SelectedIndex = itemsList.Count > 0 ? 0 : -1;
+        if (SelectedIndex < 0 || SelectedIndex >= _images.Count)
+            SelectedIndex = _images.Count > 0 ? 0 : -1;
     }
 
     private async Task OnThumbnailClick(int index)
     {
-        if (index < 0 || index >= itemsList.Count) return;
+        if (index < 0 || index >= _images.Count) return;
 
         SelectedIndex = index;
         StateHasChanged();

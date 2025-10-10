@@ -2,9 +2,9 @@
 
 namespace AuctionPortal.Data.Models;
 
-public class AuctionItemImage : ICarouselImage
+public class ProductImage : ICarouselImage
 {
-    public AuctionItemImage(string url)
+    public ProductImage(string url)
     {
         Url = url;
     }

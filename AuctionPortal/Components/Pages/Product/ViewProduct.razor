@@ -1,0 +1,10 @@
+﻿@page "/auctions/{AuctionId:guid}/product/{ProductId:guid}"
+
+<h3>ViewProduct</h3>
+
+@code {
+    #region Parameters
+    [Parameter] public Guid AuctionId { get; set; }
+    [Parameter] public Guid ProductId { get; set; }
+    #endregion
+}

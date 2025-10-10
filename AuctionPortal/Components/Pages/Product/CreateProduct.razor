@@ -1,0 +1,101 @@
+﻿@page "/auctions/{AuctionId:guid}/products/create"
+
+@using AuctionPortal.Components.ImageCarousel
+@using AuctionPortal.Components.Pages.Product.Info
+@using AuctionPortal.Data.Models
+@using AuctionPortal.Services
+@using MudBlazor
+
+@inject ISnackbar Snackbar
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-3">
+    <MudText Typo="Typo.h4" GutterBottom="true">Create a New Product</MudText>
+
+    <MudText Typo="Typo.subtitle2" Class="mb-4">
+        Follow the steps below to add your item to the auction. You can add images, describe your item, and set costs.
+    </MudText>
+
+    <MudDivider Class="my-4" />
+
+    <MudStepper Class="mt-4">
+        <!-- Step 1: Images -->
+        <MudStep Title="Step 1: Upload Images">
+            <MudStack Spacing="3">
+                <MudText Typo="Typo.h6">Add images of your item</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Primary">
+                    Upload high-quality images so buyers can see your item clearly.
+                </MudText>
+                <Images CarouselImages="_carouselImages" />
+            </MudStack>
+        </MudStep>
+
+        <!-- Step 2: Description -->
+        <MudStep Title="Step 2: Describe Your Item">
+            <MudStack Spacing="3">
+                <MudText Typo="Typo.h6">Item Details</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Primary">
+                    Provide a clear title and detailed description for your auction item.
+                </MudText> 
+                <Details @bind-Title="_auctionProduct.Title"
+                         @bind-Description="_auctionProduct.Description" />
+            </MudStack>
+        </MudStep>
+
+        <!-- Step 3: Costs -->
+        <MudStep Title="Step 3: Set Pricing" CompletedChanged="OnCompletedChanged">
+            <MudStack Spacing="3">
+                <MudText Typo="Typo.h6">Auction Costs</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Primary">
+                    Set a starting price, optional reserve price, and auction expiry date.
+                </MudText>
+                <Costs @bind-StartingPrice="_auctionProduct.StartingPrice"
+                       @bind-ReservePrice="_auctionProduct.ReservePrice"
+                       @bind-ExpiryDate="_auctionProduct.ExpiryDate" />
+            </MudStack>
+        </MudStep>
+    </MudStepper>
+</MudContainer>
+
+@code {
+    #region Parameters
+    [Parameter] public Guid AuctionId { get; set; }
+    #endregion
+
+    private Product _auctionProduct { get; set; }
+    private List<ICarouselImage> _carouselImages { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        _auctionProduct = new Product(AuctionId);
+        _auctionProduct.Category = "Something I guess";
+    }
+
+    private async Task OnCompletedChanged(bool isCompleted)
+    {
+        if (!isCompleted)
+            return;
+
+        try
+        {
+            // Minimal validation
+            if (string.IsNullOrWhiteSpace(_auctionProduct.Title))
+            {
+                Snackbar.Add("Please provide a title for your item before saving.", Severity.Warning);
+                return;
+            }
+
+            // Save the auction product
+            var savedProduct = await ProductService.AddAuctionProductAsync(_auctionProduct);
+
+            Snackbar.Add($"Auction item '{savedProduct.Title}' saved successfully!", Severity.Success);
+
+            NavigationManager.NavigateTo($"/auctions/{AuctionId}");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to save auction item: {ex.Message}{(ex.InnerException != null ? $" ({ex.InnerException.Message})" : "")}", Severity.Error);
+        }
+    }
+}

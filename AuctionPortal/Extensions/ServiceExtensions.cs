@@ -1,4 +1,7 @@
-﻿using AuctionPortal.Data;
+﻿using AuctionPortal.Components.Layout;
+using AuctionPortal.Data;
+using AuctionPortal.Services;
+
 //using AuctionPortal.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
@@ -15,8 +18,10 @@ public static class ServicesExtensions
         var conn = config.GetConnectionString("DefaultConnection")
                    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         services.AddDbContext<AuctionDbContext>(options =>
-            options.UseNpgsql(conn));
+            options.UseNpgsql(conn), ServiceLifetime.Scoped);
     }
 
     public static void ConfigureHttpClient(this IServiceCollection services)
@@ -31,7 +36,8 @@ public static class ServicesExtensions
 
     public static void ConfigureAuctionServices(this IServiceCollection services)
     {
-        //services.AddScoped<AuctionService>();
+        services.AddScoped<IAuctionService, AuctionService>();
+        services.AddScoped<IProductService, ProductService>();;
     }
 
     public static void ConfigureFormOptions(this IServiceCollection services)

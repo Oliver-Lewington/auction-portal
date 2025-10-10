@@ -9,6 +9,6 @@ public class AuctionDbContext : DbContext
 
     public DbSet<Bid> Bids { get; set; }
     public DbSet<Auction> Auctions { get; set; }
-    public DbSet<AuctionItem> AuctionItems { get; set; }
-    public DbSet<AuctionItemImage> AuctionItemImages { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Product> ProductImages { get; set; }
 }

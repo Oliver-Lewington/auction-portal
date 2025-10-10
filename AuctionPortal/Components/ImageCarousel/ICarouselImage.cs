@@ -15,11 +15,11 @@ public interface ICarouselImage
     /// <summary>
     /// Optional alt text for accessibility
     /// </summary>
-    public string Alt { get; }
+    public string? Alt { get; }
 
     /// <summary>
     /// Optional caption or title
     /// </summary>
-    public string Caption { get; }
+    public string? Caption { get; }
 }
 
