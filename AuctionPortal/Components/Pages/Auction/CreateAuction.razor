@@ -6,7 +6,6 @@
 @inject ISnackbar Snackbar
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
-@inject IDialogService DialogService
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-3">
     <MudText Typo="Typo.h4" GutterBottom="true">Create a New Auction</MudText>
@@ -15,51 +14,63 @@
     </MudText>
     <MudDivider Class="my-4" />
 
-    <MudPaper Elevation="1" Class="p-4">
-        <MudStepper NonLinear ShowResetButton OnPreviewInteraction="OnPreviewInteraction" On @bind-ActiveIndex="_activeIndex">
-
-            <!-- Step 1: Auction Details -->
-            <MudStep Title="Step 1: Auction Details"
-                     SecondaryText="Enter a name and description"
-                     HasError="@(_hasErrorStep1)">
+        <MudStepper NonLinear OnPreviewInteraction="OnPreviewInteraction" @bind-ActiveIndex="_activeIndex">
+            <!-- Step 1 -->
+            <MudStep Title="Step 1: Auction Details" SecondaryText="Enter a name and description" HasError="@_hasErrorStep1">
                 <MudStack Spacing="3">
-                    <MudTextField @bind-Value="_auction.Name" Error="@(_auction.Name == null && _hasErrorStep1)" Label="Name" Variant="Variant.Outlined" FullWidth="true" />
-                    <MudTextField @bind-Value="_auction.Description" Label="Description" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                    <MudTextField @bind-Value="_auction.Name"
+                                  Label="Name"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  Error="@_hasErrorStep1"
+                                  HelperText="@(_hasErrorStep1 ? "Name is required." : "Enter a descriptive name for your auction.")" />
+
+                    <MudTextField @bind-Value="_auction.Description"
+                                  Label="Description"
+                                  Lines="4"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  HelperText="Optional: Add more detail about the auction." />
                 </MudStack>
             </MudStep>
 
-            <!-- Step 2: Schedule -->
-            <MudStep Title="Step 2: Schedule"
-                     SecondaryText="Choose start and end times"
-                     HasError="@(_hasErrorStep2)">
+            <!-- Step 2 -->
+            <MudStep Title="Step 2: Schedule" SecondaryText="Choose start and end times" HasError="@(_hasErrorStep2)">
                 <MudStack Spacing="3">
-                    <MudDatePicker Label="Start Time" Error="@(StartTimeNullable == null && _hasErrorStep2)" Date="@StartTimeNullable" DateChanged="@(d => StartTimeNullable = d)" Clearable="true" Variant="Variant.Outlined" />
-                    <MudDatePicker Label="End Time" Error="@(EndTimeNullable == null && _hasErrorStep2)" Date="@EndTimeNullable" DateChanged="@(d => EndTimeNullable = d)" Clearable="true" Variant="Variant.Outlined" />
+                    <MudDatePicker Label="Start Time"
+                                   Date="@StartTimeNullable"
+                                   DateChanged="@(d => StartTimeNullable = d)"
+                                   Variant="Variant.Outlined"
+                                   Error="@(_hasErrorStep2 && StartTimeNullable == null)"
+                                   HelperText="@(_hasErrorStep2 && StartTimeNullable == null ? "Start time is required." : "Select when the auction begins.")" />
+
+                    <MudDatePicker Label="End Time"
+                                   Date="@EndTimeNullable"
+                                   DateChanged="@(d => EndTimeNullable = d)"
+                                   Variant="Variant.Outlined"
+                                   Error="@(_hasErrorStep2 && (EndTimeNullable == null || EndTimeNullable < StartTimeNullable))"
+                                   HelperText="@(_hasErrorStep2 && (EndTimeNullable == null || EndTimeNullable < StartTimeNullable)
+                                                                                                  ? "End time must be after start time."
+                                                                                                  : "Select when the auction will end.")" />
                 </MudStack>
             </MudStep>
 
-            <!-- Step 3: Optional Settings -->
-            <MudStep Title="Step 3: Optional Settings"
-                     SecondaryText="Live auction toggle"
-                     HasError="@(_hasErrorStep3)" CompletedChanged="OnSubmitAuction">
+            <!-- Step 3 -->
+        <MudStep Title="Step 3: Optional Settings" SecondaryText="Live auction toggle" HasError="@_hasErrorStep3" CompletedChanged="OnSubmitAuction">
                 <MudStack Spacing="3">
                     <MudSwitch @bind-Value="_auction.LiveFlag" Color="Color.Success" Label="Make Auction Live?" />
                 </MudStack>
             </MudStep>
         </MudStepper>
-    </MudPaper>
 </MudContainer>
 
 @code {
-    private Auction _auction { get; set; } = new();
+    private Auction _auction = new();
     private int _activeIndex = 0;
-
-    // Step error flags
     private bool _hasErrorStep1;
     private bool _hasErrorStep2;
     private bool _hasErrorStep3;
 
-    // Nullable helpers for binding
     private DateTime? StartTimeNullable
     {
         get => _auction.StartTime != default ? _auction.StartTime : null;
@@ -74,83 +85,72 @@
 
     private async Task OnPreviewInteraction(StepperInteractionEventArgs arg)
     {
-        if (arg.Action == StepAction.Complete)
+        try
         {
-            await ControlStepCompletion(arg);
+            if (arg.Action == StepAction.Complete)
+                ValidateStep(arg.StepIndex, arg);
+            else if (arg.Action == StepAction.Complete)
+                ValidateNavigation(arg);
+
+            await Task.Yield(); // prevents blocking UI
         }
-        else if (arg.Action == StepAction.Activate)
+        catch (Exception ex)
         {
-            await ControlStepNavigation(arg);
+            Console.WriteLine($"Stepper error: {ex.Message}");
         }
     }
 
-    private async Task ControlStepCompletion(StepperInteractionEventArgs arg)
+    private void ValidateStep(int stepIndex, StepperInteractionEventArgs arg)
     {
-        switch (arg.StepIndex)
+        switch (stepIndex)
         {
             case 0:
                 _hasErrorStep1 = string.IsNullOrWhiteSpace(_auction.Name);
-                if (_hasErrorStep1)
-                {
-                    await DialogService.ShowMessageBox("Validation Error", "Please give your auction a Name before continuing.");
-                    arg.Cancel = true;
-                }
+                if (_hasErrorStep1) arg.Cancel = true;
                 break;
 
             case 1:
-                _hasErrorStep2 = _auction.StartTime == default || _auction.EndTime == default || _auction.EndTime < _auction.StartTime;
-                if (_hasErrorStep2)
-                {
-                    await DialogService.ShowMessageBox("Validation Error", "Please select valid start and end times (end must be after start).");
-                    arg.Cancel = true;
-                }
-                break;
-
-            case 2:
-                // no completion logic, submit handled manually
+                _hasErrorStep2 = _auction.StartTime == default
+                              || _auction.EndTime == default
+                              || _auction.EndTime < _auction.StartTime;
+                if (_hasErrorStep2) arg.Cancel = true;
                 break;
         }
     }
 
-    private async Task ControlStepNavigation(StepperInteractionEventArgs arg)
+    private void ValidateNavigation(StepperInteractionEventArgs arg)
     {
-        switch (arg.StepIndex)
+        if (arg.StepIndex == 1 && string.IsNullOrWhiteSpace(_auction.Name))
         {
-            case 1:
-                if (string.IsNullOrWhiteSpace(_auction.Name))
-                {
-                    await DialogService.ShowMessageBox("Error", "Please finish step 1 first.");
-                    arg.Cancel = true;
-                }
-                break;
-
-            case 2:
-                if (_auction.StartTime == default || _auction.EndTime == default || _auction.EndTime < _auction.StartTime ||
-                    string.IsNullOrWhiteSpace(_auction.Name) || string.IsNullOrWhiteSpace(_auction.Description))
-                {
-                    await DialogService.ShowMessageBox("Error", "Please finish steps 1 and 2 first.");
-                    arg.Cancel = true;
-                }
-                break;
+            _hasErrorStep1 = true;
+            arg.Cancel = true;
+        }
+        else if (arg.StepIndex == 2 && (
+                    string.IsNullOrWhiteSpace(_auction.Name) ||
+                    _auction.StartTime == default ||
+                    _auction.EndTime == default ||
+                    _auction.EndTime < _auction.StartTime))
+        {
+            _hasErrorStep2 = true;
+            arg.Cancel = true;
         }
     }
 
     private async Task OnSubmitAuction()
     {
-        // Validate all steps again before submitting
         _hasErrorStep1 = string.IsNullOrWhiteSpace(_auction.Name);
         _hasErrorStep2 = _auction.StartTime == default || _auction.EndTime == default || _auction.EndTime < _auction.StartTime;
 
         if (_hasErrorStep1)
         {
-            Snackbar.Add("Please complete step 1 before submitting.", Severity.Warning);
+            Snackbar.Add("Please complete Step 1 before submitting.", Severity.Warning);
             _activeIndex = 0;
             return;
         }
 
         if (_hasErrorStep2)
         {
-            Snackbar.Add("Please complete step 2 before submitting.", Severity.Warning);
+            Snackbar.Add("Please complete Step 2 before submitting.", Severity.Warning);
             _activeIndex = 1;
             return;
         }
@@ -158,7 +158,9 @@
         try
         {
             var savedAuction = await AuctionService.CreateAuctionAsync(_auction);
+
             NavigationManager.NavigateTo($"/auctions/{savedAuction.Id}");
+
             Snackbar.Add($"Auction '{savedAuction.Name}' created successfully!", Severity.Success);
         }
         catch (Exception ex)

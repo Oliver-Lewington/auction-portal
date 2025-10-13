@@ -19,57 +19,151 @@
 
     <MudDivider Class="my-4" />
 
-    <MudStepper Class="mt-4">
-        <!-- Step 1: Images -->
-        <MudStep Title="Step 1: Upload Images">
-            <MudStack Spacing="3">
-                <MudText Typo="Typo.h6">Add images of your item</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Primary">
-                    Upload high-quality images so buyers can see your item clearly.
-                </MudText>
-                <Images CarouselImages="_carouselImages" />
-            </MudStack>
-        </MudStep>
+    <MudPaper Elevation="1" Class="p-4">
+        <MudStepper NonLinear ShowResetButton OnPreviewInteraction="OnPreviewInteraction" @bind-ActiveIndex="_activeIndex">
+            
+            <!-- Step 1: Images -->
+            <MudStep Title="Step 1: Upload Images" SecondaryText="Add product images" HasError="@(_hasErrorStep1)">
+                <MudStack Spacing="3">
+                    <Images CarouselImages="_carouselImages" />
+                    @if (_hasErrorStep1)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Error">
+                            Please upload at least one image.
+                        </MudText>
+                    }
+                </MudStack>
+            </MudStep>
 
-        <!-- Step 2: Description -->
-        <MudStep Title="Step 2: Describe Your Item">
-            <MudStack Spacing="3">
-                <MudText Typo="Typo.h6">Item Details</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Primary">
-                    Provide a clear title and detailed description for your auction item.
-                </MudText> 
-                <Details @bind-Title="_auctionProduct.Title"
-                         @bind-Description="_auctionProduct.Description" />
-            </MudStack>
-        </MudStep>
+            <!-- Step 2: Description -->
+            <MudStep Title="Step 2: Describe Your Item" SecondaryText="Enter name and description" HasError="@(_hasErrorStep2)">
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_auctionProduct.Title"
+                                  Label="Name"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  Error="@(_hasErrorStep2 && string.IsNullOrWhiteSpace(_auctionProduct.Title))"
+                                  HelperText="@(_hasErrorStep2 && string.IsNullOrWhiteSpace(_auctionProduct.Title)
+                                                ? "Name is required."
+                                                : "Enter a descriptive name for your product.")" />
 
-        <!-- Step 3: Costs -->
-        <MudStep Title="Step 3: Set Pricing" CompletedChanged="OnCompletedChanged">
-            <MudStack Spacing="3">
-                <MudText Typo="Typo.h6">Auction Costs</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Primary">
-                    Set a starting price, optional reserve price, and auction expiry date.
-                </MudText>
-                <Costs @bind-StartingPrice="_auctionProduct.StartingPrice"
-                       @bind-ReservePrice="_auctionProduct.ReservePrice"
-                       @bind-ExpiryDate="_auctionProduct.ExpiryDate" />
-            </MudStack>
-        </MudStep>
-    </MudStepper>
+                    <MudTextField @bind-Value="_auctionProduct.Description"
+                                  Label="Description"
+                                  Lines="4"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  HelperText="Optional: Add more detail about your product." />
+                </MudStack>
+            </MudStep>
+
+            <!-- Step 3: Costs -->
+            <MudStep Title="Step 3: Set Pricing" SecondaryText="Starting price, reserve, expiry"
+                     HasError="@(_hasErrorStep3)" CompletedChanged="OnCompletedChanged">
+                <MudStack Spacing="3">
+                    <MudNumericField @bind-Value="_auctionProduct.StartingPrice"
+                                     Label="Starting Price (£)"
+                                     Variant="Variant.Outlined"
+                                     FullWidth="true"
+                                     Error="@(_hasErrorStep3 && _auctionProduct.StartingPrice <= 0)"
+                                     HelperText="@(_hasErrorStep3 && _auctionProduct.StartingPrice <= 0
+                                                  ? "Starting price must be greater than 0."
+                                                  : "Enter the opening bid price.")" />
+
+                    <MudNumericField @bind-Value="_auctionProduct.ReservePrice"
+                                     Label="Reserve Price (£)"
+                                     Variant="Variant.Outlined"
+                                     FullWidth="true"
+                                     HelperText="Optional: Set a minimum selling price." />
+
+                    <MudDatePicker Label="Expiry Date"
+                                   Date="@ExpiryDateNullable"
+                                   DateChanged="@(d => ExpiryDateNullable = d)"
+                                   Variant="Variant.Outlined"
+                                   Error="@(_hasErrorStep3 && ExpiryDateNullable.HasValue && ExpiryDateNullable <= DateTime.Now)"
+                                   HelperText="@(_hasErrorStep3 && ExpiryDateNullable.HasValue && ExpiryDateNullable <= DateTime.Now
+                                                ? "Expiry date must be in the future."
+                                                : "Optional: Select when the product will expire.")" />
+                </MudStack>
+            </MudStep>
+        </MudStepper>
+    </MudPaper>
 </MudContainer>
 
 @code {
-    #region Parameters
     [Parameter] public Guid AuctionId { get; set; }
-    #endregion
 
-    private Product _auctionProduct { get; set; }
+    private Product _auctionProduct { get; set; } = default!;
     private List<ICarouselImage> _carouselImages { get; set; } = new();
+    private int _activeIndex = 0;
+
+    // Step error flags
+    private bool _hasErrorStep1;
+    private bool _hasErrorStep2;
+    private bool _hasErrorStep3;
+
+    private DateTime? ExpiryDateNullable
+    {
+        get => _auctionProduct.ExpiryDate != default ? _auctionProduct.ExpiryDate : null;
+        set => _auctionProduct.ExpiryDate = value ?? default;
+    }
 
     protected override void OnInitialized()
     {
-        _auctionProduct = new Product(AuctionId);
-        _auctionProduct.Category = "Something I guess";
+        _auctionProduct = new Product(AuctionId)
+        {
+            Category = "Something I guess"
+        };
+    }
+
+    private async Task OnPreviewInteraction(StepperInteractionEventArgs arg)
+    {
+        if (arg.Action == StepAction.Complete)
+            await ControlStepCompletion(arg);
+        else if (arg.Action == StepAction.Activate)
+            await ControlStepNavigation(arg);
+    }
+
+    private Task ControlStepCompletion(StepperInteractionEventArgs arg)
+    {
+        switch (arg.StepIndex)
+        {
+            case 0:
+                _hasErrorStep1 = _carouselImages == null || !_carouselImages.Any();
+                if (_hasErrorStep1) arg.Cancel = true;
+                break;
+
+            case 1:
+                _hasErrorStep2 = string.IsNullOrWhiteSpace(_auctionProduct.Title);
+                if (_hasErrorStep2) arg.Cancel = true;
+                break;
+
+            case 2:
+                _hasErrorStep3 =
+                    _auctionProduct.StartingPrice <= 0 ||
+                    (_auctionProduct.ExpiryDate != default && _auctionProduct.ExpiryDate <= DateTime.Now);
+                if (_hasErrorStep3) arg.Cancel = true;
+                break;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task ControlStepNavigation(StepperInteractionEventArgs arg)
+    {
+        if (arg.StepIndex == 1 && (_carouselImages == null || !_carouselImages.Any()))
+        {
+            _hasErrorStep1 = true;
+            arg.Cancel = true;
+        }
+        else if (arg.StepIndex == 2 && (
+                    _carouselImages == null || !_carouselImages.Any() ||
+                    string.IsNullOrWhiteSpace(_auctionProduct.Title)))
+        {
+            _hasErrorStep2 = true;
+            arg.Cancel = true;
+        }
+
+        return Task.CompletedTask;
     }
 
     private async Task OnCompletedChanged(bool isCompleted)
@@ -77,25 +171,44 @@
         if (!isCompleted)
             return;
 
+        _hasErrorStep1 = _carouselImages == null || !_carouselImages.Any();
+        _hasErrorStep2 = string.IsNullOrWhiteSpace(_auctionProduct.Title);
+        _hasErrorStep3 =
+            _auctionProduct.StartingPrice <= 0 ||
+            (_auctionProduct.ExpiryDate != default && _auctionProduct.ExpiryDate <= DateTime.Now);
+
+        if (_hasErrorStep1)
+        {
+            Snackbar.Add("Please upload at least one image before submitting.", Severity.Warning);
+            _activeIndex = 0;
+            return;
+        }
+
+        if (_hasErrorStep2)
+        {
+            Snackbar.Add("Please complete Step 2 (item title and description).", Severity.Warning);
+            _activeIndex = 1;
+            return;
+        }
+
+        if (_hasErrorStep3)
+        {
+            Snackbar.Add("Please complete Step 3 (pricing and expiry).", Severity.Warning);
+            _activeIndex = 2;
+            return;
+        }
+
         try
         {
-            // Minimal validation
-            if (string.IsNullOrWhiteSpace(_auctionProduct.Title))
-            {
-                Snackbar.Add("Please provide a title for your item before saving.", Severity.Warning);
-                return;
-            }
-
-            // Save the auction product
             var savedProduct = await ProductService.AddAuctionProductAsync(_auctionProduct);
 
-            Snackbar.Add($"Auction item '{savedProduct.Title}' saved successfully!", Severity.Success);
-
             NavigationManager.NavigateTo($"/auctions/{AuctionId}");
+
+            Snackbar.Add($"Auction item '{savedProduct.Title}' saved successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to save auction item: {ex.Message}{(ex.InnerException != null ? $" ({ex.InnerException.Message})" : "")}", Severity.Error);
+            Snackbar.Add($"Failed to save auction item: {ex.Message}", Severity.Error);
         }
     }
 }

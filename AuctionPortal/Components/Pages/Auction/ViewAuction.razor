@@ -8,113 +8,95 @@
 @inject ISnackbar Snackbar
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
-
+@inject IDialogService DialogService
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-6">
-        @* Admin Toolbar *@
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
-            <MudText Typo="Typo.h5" Class="fw-semibold">Products</MudText>
-            <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
-                @if (_isAdmin)
-                {
-                    <MudTooltip Text="Add Product">
-                        <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="NavigateToAddProduct" />
+    @* Body *@
+    <MudGrid Spacing="6" Justify="Justify.Center">
+        @* Left - Image *@
+        <MudItem sm="12" lg="6">
+            <MudImage Src="@_placeholderImage" ObjectFit="ObjectFit.Cover" Width="350" Height="350" Alt="Auction Image" Elevation="25" Class="rounded-lg my-4" />
+        </MudItem>
+        @* Right - Auction Details *@
+        <MudItem sm="12" lg="6" Class="d-flex justify-center align-center">
+            <MudStack Spacing="5">
+                @* Title & Text *@
+                <MudStack Spacing="0">
+                    <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_auction?.StartTime.ToString("ddd dd MMM") - @_auction?.EndTime.ToString("ddd dd MMM")</MudText>
+                    <MudText Typo="Typo.h5">@_auction?.Name</MudText>
+                    <MudText Style="max-width: " Typo="Typo.body1">@_auction?.Description</MudText>
+                </MudStack>
+
+                @* Buttons *@
+                <MudGrid>
+                    <MudItem>
+                        <MudButton Disabled="@(_auction?.LiveFlag == false)" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">View Live Auction</MudButton>
+                    </MudItem>
+                    <MudItem>
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined">View Products</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudItem>
+        <MudItem xs="12">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                <MudText Typo="Typo.h5" Class="fw-semibold">Products</MudText>
+                <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
+                    @if (_isAdmin)
+                    {
+                        <MudTooltip Text="Add Product">
+                            <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="NavigateToAddProduct" />
+                        </MudTooltip>
+                    }
+                    <MudTooltip Text="Previous">
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="Prev" Disabled="DisableSteppers()" />
                     </MudTooltip>
-                }
-                <MudTooltip Text="Previous">
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="Prev" Disabled="DisableSteppers()" />
-                </MudTooltip>
-                <MudTooltip Text="Next">
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" OnClick="Next" Disabled="DisableSteppers()" />
-                </MudTooltip>
-            </MudToolBar>
-        </MudStack>
-        @* Body *@
-        <MudGrid Spacing="6" Justify="Justify.Center">
-            @* Left - Image *@
-            <MudItem sm="12" lg="6">
-                <MudImage Src="@_placeholderImage" ObjectFit="ObjectFit.Cover" Width="350" Height="350" Alt="Auction Image" Elevation="25" Class="rounded-lg my-4" />
-            </MudItem>
-            @* Right - Auction Details *@
-            <MudItem sm="12" lg="6" Class="d-flex justify-center align-center">
-                <MudStack Spacing="5">
-                    @* Title & Text *@
-                    <MudStack Spacing="0">
-                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_auction?.StartTime.ToString("ddd dd MMM") - @_auction?.EndTime.ToString("ddd dd MMM")</MudText>
-                        <MudText Typo="Typo.h5">@_auction?.Name</MudText>
-                        <MudText Style="max-width: " Typo="Typo.body1">@_auction?.Description</MudText>
-                    </MudStack>
+                    <MudTooltip Text="Next">
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" OnClick="Next" Disabled="DisableSteppers()" />
+                    </MudTooltip>
+                </MudToolBar>
+            </MudStack>
 
-                    @* Buttons *@
-                    <MudGrid>
-                        <MudItem>
-                            <MudButton Disabled="@(_auction?.LiveFlag == false)" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">View Live Auction</MudButton>
-                        </MudItem>
-                        <MudItem>
-                            <MudButton Size="Size.Small" Variant="Variant.Outlined">View Products</MudButton>
-                        </MudItem>
-                    </MudGrid>
-                </MudStack>
-            </MudItem>
-            <MudItem xs="12">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
-                    <MudText Typo="Typo.h5" Class="fw-semibold">Products</MudText>
-                    <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
-                        @if (_isAdmin)
-                        {
-                            <MudTooltip Text="Add Product">
-                                <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="NavigateToAddProduct" />
-                            </MudTooltip>
-                        }
-                        <MudTooltip Text="Previous">
-                            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="Prev" Disabled="DisableSteppers()" />
-                        </MudTooltip>
-                        <MudTooltip Text="Next">
-                            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" OnClick="Next" Disabled="DisableSteppers()" />
-                        </MudTooltip>
-                    </MudToolBar>
-                </MudStack>
+            @if (_auction?.Products == null || !_auction.Products.Any())
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Elevation="2" Class="my-4">
+                    There are no products in this auction yet.
+                </MudAlert>
+            }
+            else
+            {
+                <MudCarousel TData="List<Product>" Style="height:18rem;" @ref="_carousel" Class="mt-2" ShowArrows="false" AutoCycle="true">
 
-                @if (_auction?.Products == null || !_auction.Products.Any())
-                {
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Elevation="2" Class="my-4">
-                        There are no products in this auction yet.
-                    </MudAlert>
-                }
-                else
-                {
-                    <MudCarousel TData="List<Product>" Style="height:18rem;" @ref="_carousel" Class="mt-2" ShowArrows="false" AutoCycle="true">
+                    @foreach (var chunk in _productChunks)
+                    {
+                        <MudCarouselItem>
+                            <MudStack Row>
+                                @foreach (var product in chunk)
+                                {
+                                    <MudStack Class="mx-3">
+                                        <MudImage ObjectFit="ObjectFit.Contain" Height="130" Src="@_placeholderImage" />
+                                        <MudText Typo="Typo.h6">@product.Title</MudText>
 
-                        @foreach (var chunk in _productChunks)
-                        {
-                            <MudCarouselItem>
-                                <MudStack Row Justify="Justify.SpaceBetween">
-                                    @foreach (var product in chunk)
-                                    {
-                                        <MudStack>
-                                            <MudImage ObjectFit="ObjectFit.Contain" Height="130" Src="@_placeholderImage" />
-                                            <MudText Typo="Typo.h6">@product.Title</MudText>
-
-                                            <MudGrid Justify="Justify.SpaceBetween">
-                                                <MudItem sm="6">
-                                                    <MudStack Spacing="0">
-                                                        <MudText Typo="Typo.caption">Starting Price</MudText>
-                                                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">£@product.StartingPrice</MudText>
-                                                    </MudStack>
-                                                </MudItem>
-                                                <MudItem Class="d-flex justify-center align-center">
-                                                    <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">View</MudButton>
-                                                </MudItem>
-                                            </MudGrid>
-                                        </MudStack>
-                                    }
-                                </MudStack>
-                            </MudCarouselItem>
-                        }
-                    </MudCarousel>
-                }
-            </MudItem>
-        </MudGrid>
+                                        <MudGrid Justify="Justify.SpaceBetween">
+                                            <MudItem sm="6">
+                                                <MudStack Spacing="0">
+                                                    <MudText Typo="Typo.caption">Starting Price</MudText>
+                                                    <MudText Color="Color.Primary" Typo="Typo.subtitle2">£@product.StartingPrice</MudText>
+                                                </MudStack>
+                                            </MudItem>
+                                            <MudItem Class="d-flex justify-center align-center">
+                                                <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">View</MudButton>
+                                            </MudItem>
+                                        </MudGrid>
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        </MudCarouselItem>
+                    }
+                </MudCarousel>
+            }
+        </MudItem>
+    </MudGrid>
 </MudContainer>
 
 @code {
@@ -128,6 +110,64 @@
     private Auction? _auction;
     private readonly string _placeholderImage = "https://placehold.co/600x400";
     private bool _isAdmin = true; // TODO: Replace with real role check
+
+    private async Task ToggleLiveStatus(bool value)
+    {
+        if (_auction is null) return;
+
+        try
+        {
+            _auction.LiveFlag = value;
+            await AuctionService.UpdateAuctionAsync(_auction);
+            Snackbar.Add($"Auction is now {(value ? "Live" : "Inactive")}.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to update auction status: {ex.Message}", Severity.Error);
+            _auction.LiveFlag = !value; // rollback
+        }
+    }
+
+    private void EditAuction()
+    {
+        if (_auction is not null)
+            NavigationManager.NavigateTo($"/auctions/{_auction.Id}/edit");
+    }
+
+    private async Task ConfirmDeleteAuction()
+    {
+        if (_auction is null) return;
+
+        var parameters = new DialogParameters
+    {
+        { "ContentText", $"Are you sure you want to delete '{_auction.Name}'? This cannot be undone." },
+        { "ButtonText", "Delete" },
+        { "Color", Color.Error }
+    };
+
+        var dialog = await DialogService.ShowAsync<MudDialog>("Confirm Delete", parameters);
+        var result = dialog.Result;
+
+        if (result.Result != null && !result.Result.Canceled)
+            await DeleteAuction();
+    }
+
+    private async Task DeleteAuction()
+    {
+        if (_auction is null) return;
+
+        try
+        {
+            await AuctionService.DeleteAuctionAsync(_auction.Id);
+            Snackbar.Add("Auction deleted successfully.", Severity.Success);
+            NavigationManager.NavigateTo("/auctions");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to delete auction: {ex.Message}", Severity.Error);
+        }
+    }
+
 
     // 🔹 Lifecycle Methods
     protected override async Task OnInitializedAsync()
