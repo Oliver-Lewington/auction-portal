@@ -35,4 +35,14 @@ public class AuctionService : IAuctionService
                 .Include(a => a.Products)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+
+    public Task UpdateAuctionAsync(Auction auction)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteAuctionAsync(Guid id)
+    {
+        throw new NotImplementedException();
+    }
 }
