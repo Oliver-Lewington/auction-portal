@@ -1,5 +1,4 @@
 ﻿using AuctionPortal.Components;
-using AuctionPortal.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuctionPortal.Extensions;
@@ -10,7 +9,7 @@ public static class ApplicationBuilderExtensions
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TContext>();
-        db.Database.Migrate();
+         db.Database.Migrate();
     }
 
     public static void ConfigurePipeline(this WebApplication app)

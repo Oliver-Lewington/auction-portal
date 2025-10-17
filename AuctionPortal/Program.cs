@@ -1,5 +1,6 @@
 using AuctionPortal.Data;
 using AuctionPortal.Extensions;
+using AuctionPortal.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddRazorComponents()
 
 // Configure Services
 builder.Services.ConfigureDatabase(builder.Configuration);
+builder.Services.AddAutoMapper(cfg => { }, typeof(AuctionMappingProfile));
 builder.Services.ConfigureHttpClient();
 builder.Services.ConfigureMudBlazor();
 builder.Services.ConfigureAuctionServices();
