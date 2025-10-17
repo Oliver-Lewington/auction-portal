@@ -7,8 +7,8 @@ public class AuctionDbContext : DbContext
 {
     public AuctionDbContext(DbContextOptions<AuctionDbContext> options) : base(options) { }
 
-    public DbSet<Bid> Bids { get; set; }
-    public DbSet<Auction> Auctions { get; set; }
-    public DbSet<Product> Products { get; set; }
-    public DbSet<Product> ProductImages { get; set; }
+    public DbSet<BidModel> Bids { get; set; }
+    public DbSet<AuctionModel> Auctions { get; set; }
+    public DbSet<ProductModel> Products { get; set; }
+    public DbSet<ProductImageModel> ProductImages { get; set; }
 }

@@ -1,11 +1,11 @@
 ﻿namespace AuctionPortal.Data.Models;
 
-public class Bid
+public class BidModel
 {
     public Guid Id { get; set; }
-    public Product AuctionItem { get; set; } = null!;
+    public ProductModel AuctionItem { get; set; } = null!;
 
-    public User? User { get; set; }
+    public UserModel? User { get; set; }
 
     public decimal Amount { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
