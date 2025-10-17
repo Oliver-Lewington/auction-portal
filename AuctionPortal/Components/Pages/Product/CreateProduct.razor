@@ -1,4 +1,4 @@
-﻿@page "/auctions/{AuctionId:guid}/products/create"
+﻿@page "/{AuctionId:guid}/products/create"
 
 @using AuctionPortal.Components.ImageCarousel
 @using AuctionPortal.Components.Pages.Product.Info
@@ -202,7 +202,7 @@
         {
             var savedProduct = await ProductService.AddAuctionProductAsync(_auctionProduct);
 
-            NavigationManager.NavigateTo($"/auctions/{AuctionId}");
+            NavigationManager.NavigateTo($"/{AuctionId}");
 
             Snackbar.Add($"Auction item '{savedProduct.Title}' saved successfully!", Severity.Success);
         }

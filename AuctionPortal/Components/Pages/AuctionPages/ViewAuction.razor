@@ -1,0 +1,286 @@
+﻿@page "/{Id:guid}"
+
+@using AuctionPortal.Services
+@using AuctionPortal.Components.Pages.AuctionPages.Components
+@using AuctionPortal.Data.Models
+@using MudBlazor
+
+@inject ISnackbar Snackbar
+@inject IAuctionService AuctionService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+
+@* Body *@
+<MudGrid Spacing="6" Justify="Justify.Center">
+    @* Left - Image *@
+    <MudItem sm="12" lg="6">
+        <MudImage Src="@_placeholderImage" ObjectFit="ObjectFit.Cover" Width="375" Height="350" Alt="Auction Image" Elevation="25" Class="rounded-lg my-4" />
+    </MudItem>
+    @* Right - Auction Details *@
+    <MudItem sm="12" lg="6" Class="d-flex justify-center align-center">
+        <MudStack Spacing="5">
+            @* Title & Text *@
+            <MudStack Spacing="0">
+                <MudText Color="Color.Primary" Typo="Typo.caption"><b>@_auction?.StartTime?.ToString("ddd dd MMM") - @_auction?.EndTime?.ToString("ddd dd MMM")</b></MudText>
+                <MudText Typo="Typo.h4">@_auction?.Name</MudText>
+                <MudText Class="secondary-text" Typo="Typo.body2">@(_auction?.Description ?? "A description has not been created for this auction yet.")</MudText>
+            </MudStack>
+
+            @* Buttons *@
+            <MudGrid>
+                <MudItem>
+                    <MudButton Disabled="@(_auction?.LiveFlag == false)" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">View Live Auction</MudButton>
+                </MudItem>
+                <MudItem>
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined">View Products</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </MudItem>
+    <MudItem xs="12">
+        <MudTabs ApplyEffectsToContainer="false" Border="true" Color="Color.Transparent" PanelClass="pa-6">
+            @* Products Tab *@
+            <MudTabPanel Disabled="@(_auction?.Products.Count == 0)" Text="Products" BadgeData='@_auction?.Products.Count' BadgeColor="Color.Primary">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                    <MudText Typo="Typo.h5">Products</MudText>
+                    <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
+                        @if (_isAdmin)
+                        {
+                            <MudTooltip Text="Add Product">
+                                <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="NavigateToAddProduct" />
+                            </MudTooltip>
+                        }
+                        <MudTooltip Text="Previous">
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="Prev" Disabled="DisableSteppers()" />
+                        </MudTooltip>
+                        <MudTooltip Text="Next">
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" OnClick="Next" Disabled="DisableSteppers()" />
+                        </MudTooltip>
+                    </MudToolBar>
+                </MudStack>
+
+                @if (_auction?.Products == null || !_auction.Products.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Elevation="2" Class="my-4">
+                        There are no products in this auction yet.
+                    </MudAlert>
+                }
+                else
+                {
+
+                    @foreach (var chunk in _productChunks)
+                    {
+
+                        <MudStack Row>
+                            @foreach (var product in chunk)
+                            {
+                                <MudStack Row Class="mx-3">
+                                    <MudCard>
+                                        <!-- Image with LIVE badge -->
+                                        <MudCardMedia Image="https://placehold.co/600x400" Height="225"/>
+
+                                        <div class="ma-2" style="position: absolute;">
+                                            <MudChip T="string" Color="Color.Error"
+                                                        Size="Size.Small"
+                                                        Class="live-badge">
+                                                <b>LIVE</b>
+                                            </MudChip>
+                                        </div>                          
+
+                                        <!-- Card Content -->
+                                        <MudCardContent Class="p-4">
+                                            <MudStack Row Justify="Justify.SpaceBetween" Class="mb-2 secondary-text">
+                                                <MudText Typo="Typo.h5">@product.Title</MudText>
+                                                <MudChip T="string" Label=true Size="Size.Small">
+                                                    120
+                                                    @* @($"{product.Category} product{(product.Products.Count == 1 ? "" : "s")}") *@
+                                                </MudChip>
+                                            </MudStack>
+
+                                            <MudText Typo="Typo.body2" Color="Color.Surface" Class="secondary-text card-description">
+                                                @(product.Description ?? "A description has not been created for this auction yet.")
+                                            </MudText>
+                                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                                <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility">  @* OnClick="() => ViewAuction(product.Id)" *@
+                                                    View Details
+                                                </MudButton>
+
+                                                <MudStack Row Spacing="1">
+                                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="() => EditAuction(product.Id)" />
+                                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Delete" />@* OnClick="() => DeleteAuction(product)" *@
+                                                </MudStack>
+                                            </MudStack>
+                                        </MudCardContent>
+                                    </MudCard>
+                                </MudStack>
+                            }
+                        </MudStack>
+                    }
+
+                }
+            </MudTabPanel>
+            @* Bidders Tab *@
+            <MudTabPanel Text="Bidders">
+                <MudText>Content One</MudText>
+            </MudTabPanel>
+            @* Analytics Tab *@
+            <MudTabPanel Disabled="true" Text="Analytics">
+                <MudText>Content Three</MudText>
+            </MudTabPanel>
+            @* Settings Tab *@
+            <MudTabPanel Text="Settings" >
+                <AuctionSettings Auction="_auction"/>
+            </MudTabPanel>
+        </MudTabs>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string _auctionStatus = "Live";
+    private DateTime _auctionGoLive = DateTime.Now;
+    private DateTime _auctionEnd = DateTime.Now.AddDays(5);
+
+    private bool _notifyBidders = true;
+    private bool _notifyWinners = true;
+    private bool _notifyOutbid = true;
+
+
+    #region Parameters
+    [Parameter] public Guid Id { get; set; }
+    #endregion
+
+    private void CreateAuction() => NavigationManager.NavigateTo("/create");
+    private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/edit/{auctionId}");
+
+    // 🔹 Private fields
+    private MudCarousel<List<Product>>? _carousel;
+    private List<List<Product>> _productChunks = new();
+    private Auction? _auction;
+    private readonly string _placeholderImage = "https://placehold.co/600x400";
+    private bool _isAdmin = true; // TODO: Replace with real role check
+
+    private async Task ToggleLiveStatus(bool value)
+    {
+        if (_auction is null) return;
+
+        try
+        {
+            _auction.LiveFlag = value;
+            await AuctionService.UpdateAuctionAsync(_auction);
+            Snackbar.Add($"Auction is now {(value ? "Live" : "Inactive")}.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to update auction status: {ex.Message}", Severity.Error);
+            _auction.LiveFlag = !value; // rollback
+        }
+    }
+
+    private void EditAuction()
+    {
+        if (_auction is not null)
+            NavigationManager.NavigateTo($"/{_auction.Id}/edit");
+    }
+
+    private async Task ConfirmDeleteAuction()
+    {
+        if (_auction is null) return;
+
+        var parameters = new DialogParameters
+    {
+        { "ContentText", $"Are you sure you want to delete '{_auction.Name}'? This cannot be undone." },
+        { "ButtonText", "Delete" },
+        { "Color", Color.Error }
+    };
+
+        var dialog = await DialogService.ShowAsync<MudDialog>("Confirm Delete", parameters);
+        var result = dialog.Result;
+
+        if (result.Result != null && !result.Result.Canceled)
+            await DeleteAuction();
+    }
+
+    private async Task DeleteAuction()
+    {
+        if (_auction is null) return;
+
+        try
+        {
+            await AuctionService.DeleteAuctionAsync(_auction.Id);
+            Snackbar.Add("Auction deleted successfully.", Severity.Success);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to delete auction: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+    // 🔹 Lifecycle Methods
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == Guid.Empty)
+        {
+            Snackbar.Add("Invalid auction ID.", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            _auction = await AuctionService.GetAuctionByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load auction: {ex.Message}", Severity.Error);
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_auction is null) return;
+
+        // Group products into chunks of 4 for each carousel slide
+        _productChunks = _auction.Products
+            .OrderByDescending(p => p.CreatedAt)
+            .Select((p, i) => new { p, i })
+            .GroupBy(x => x.i / 4)
+            .Select(g => g.Select(x => x.p).ToList())
+            .ToList();
+    }
+
+    // 🔹 Carousel Navigation
+    private void Next() => _carousel?.Next();
+    private void Prev() => _carousel?.Previous();
+    private bool DisableSteppers() => _auction?.Products == null || _auction?.Products.Count() < 4;
+
+    // 🔹 Product Helpers
+    private string GetProductImage(Product product) => _placeholderImage; // TODO: Replace with actual image logic
+
+    private string TruncateAtWord(string text, int maxLength = 30)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        if (text.Length <= maxLength)
+            return text;
+
+        var substring = text[..maxLength];
+        var lastSpace = substring.LastIndexOf(' ');
+
+        if (lastSpace > 0)
+            substring = substring[..lastSpace];
+
+        return $"{substring}...";
+    }
+
+    private void NavigateToAddProduct()
+    {
+        if (_auction is not null)
+            NavigationManager.NavigateTo($"/{_auction.Id}/products/create");
+    }
+
+    private void ViewProduct(Guid productId) => NavigationManager.NavigateTo($"/{_auction.Id}/products/{productId}");
+}
+

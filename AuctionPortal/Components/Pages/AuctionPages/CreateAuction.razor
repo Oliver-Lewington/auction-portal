@@ -1,7 +1,8 @@
-﻿@page "/auctions/create"
+﻿@page "/create"
 @using AuctionPortal.Data.Models
 @using AuctionPortal.Services
 @using MudBlazor
+@using System.Diagnostics
 
 @inject ISnackbar Snackbar
 @inject IAuctionService AuctionService
@@ -41,14 +42,14 @@
                                    Date="@StartTimeNullable"
                                    DateChanged="@(d => StartTimeNullable = d)"
                                    Variant="Variant.Outlined"
-                                   Error="@(_hasErrorStep2 && StartTimeNullable == null)"
+                                   Error="@(_hasErrorStep2 && StartTimeNullable == null || StartTimeNullable < DateTime.Today)"
                                    HelperText="@(_hasErrorStep2 && StartTimeNullable == null ? "Start time is required." : "Select when the auction begins.")" />
 
                     <MudDatePicker Label="End Time"
                                    Date="@EndTimeNullable"
                                    DateChanged="@(d => EndTimeNullable = d)"
                                    Variant="Variant.Outlined"
-                                   Error="@(_hasErrorStep2 && (EndTimeNullable == null || EndTimeNullable < StartTimeNullable))"
+                                   Error="@(_hasErrorStep2 && (EndTimeNullable == null || EndTimeNullable < StartTimeNullable || EndTimeNullable < DateTime.Today))"
                                    HelperText="@(_hasErrorStep2 && (EndTimeNullable == null || EndTimeNullable < StartTimeNullable)
                                                                                                   ? "End time must be after start time."
                                                                                                   : "Select when the auction will end.")" />
@@ -112,6 +113,8 @@
             case 1:
                 _hasErrorStep2 = _auction.StartTime == default
                               || _auction.EndTime == default
+                              || _auction.StartTime < DateTime.Today
+                              || _auction.EndTime < DateTime.Today
                               || _auction.EndTime < _auction.StartTime;
                 if (_hasErrorStep2) arg.Cancel = true;
                 break;
@@ -159,7 +162,7 @@
         {
             var savedAuction = await AuctionService.CreateAuctionAsync(_auction);
 
-            NavigationManager.NavigateTo($"/auctions/{savedAuction.Id}");
+            NavigationManager.NavigateTo($"/{savedAuction.Id}");
 
             Snackbar.Add($"Auction '{savedAuction.Name}' created successfully!", Severity.Success);
         }
