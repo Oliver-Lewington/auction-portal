@@ -84,7 +84,7 @@
 
             @* Row 3 *@
             <MudGrid>
-                @foreach (Auction auction in _auctions)
+                @foreach (AuctionModel auction in _auctions)
                 {
                     <MudItem xs="12" sm="6" md="6" lg="4" xl="4">
                         <MudCard>
@@ -145,7 +145,7 @@
 </MudContainer>
 
 @code {
-    private IEnumerable<Auction>? _auctions;
+    private IEnumerable<AuctionModel>? _auctions;
     private string _searchText = "";
     private string _status = "All";
     private string _sortBy = "Newest";
@@ -159,7 +159,7 @@
     private void ViewAuction(Guid auctionId) => NavigationManager.NavigateTo($"/{auctionId}");
     private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/edit/{auctionId}");
 
-    private async Task DeleteAuction(Auction auction)
+    private async Task DeleteAuction(AuctionModel auction)
     {
         if (auction == null) return;
 

@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Components;
-using AuctionPortal.Data.Models;
+﻿using AuctionPortal.Data.Models;
+using Microsoft.AspNetCore.Components;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.X86;
 
-namespace AuctionPortal.Components.Pages.AuctionPages.Components;
+namespace AuctionPortal.Components.Pages.Auction.Components;
 
 public partial class AuctionSettings : ComponentBase
 {
-    [Inject] NavigationManager Navigation { get; set; } = null!;
+    [Inject] NavigationManager Navigation { get; set; } = default!;
 
-    [Parameter] public Auction? Auction { get; set; } // Check for nullability and throw error if null
+    [Parameter] public AuctionModel? Auction { get; set; } // Check for nullability and throw error if null
 
     private string _auctionStatus = "Live";
     private bool _notifyBidders = true;
@@ -32,7 +33,10 @@ public partial class AuctionSettings : ComponentBase
 
     private void CreateProduct()
     {
-        // Navigation logic to add product page
+        if (Auction is null)
+            return; // Snackbar "Auction has not been passed successfully"
+
+        Navigation.NavigateTo($"{Auction.Id}/products/create");
     }
 
     private void SaveSettings()

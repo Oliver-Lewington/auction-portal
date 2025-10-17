@@ -94,7 +94,7 @@
                 var base64 = Convert.ToBase64String(ms.ToArray());
                 var imageUrl = $"data:{file.ContentType};base64,{base64}";
 
-                ICarouselImage image = new ProductImage(imageUrl);
+                ICarouselImage image = new ProductImageModel(imageUrl);
 
                 CarouselImages.Add(image);
             }

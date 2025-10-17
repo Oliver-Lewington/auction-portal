@@ -1,0 +1,109 @@
+﻿@page "/create"
+@using AuctionPortal.Data.Models
+@using AuctionPortal.Services
+@using AuctionPortal.ViewModels
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-3">
+    <MudText Typo="Typo.h4" GutterBottom="true">Create a New Auction</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-4">
+        Follow the steps below to create your auction.
+    </MudText>
+    <MudDivider Class="my-4" />
+
+    <MudStepper @ref="stepper"
+                CompletedStepColor="Color.Success"
+                OnPreviewInteraction="validator.OnPreviewInteraction">
+
+        <!-- STEP 1 -->
+        <MudStep Title="Step 1: Auction Details"
+                 SecondaryText="Enter a name and description"
+                 HasError="validator.HasError(0)">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="auction.Name"
+                              Label="Name"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              Error="validator.HasError(0)"
+                              HelperText="@(!validator.HasError(0) ? "Enter a descriptive name for your auction." : null)"
+                              ErrorText="@(validator.HasError(0) ? "Name is required." : null)" />
+
+                <MudTextField @bind-Value="auction.Description"
+                              Label="Description"
+                              Lines="4"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              HelperText="Optional: Add more detail about the auction." />
+            </MudStack>
+        </MudStep>
+
+        <!-- STEP 2 -->
+        <MudStep Title="Step 2: Schedule"
+                 SecondaryText="Choose start and end times"
+                 HasError="validator.HasError(1)">
+            <MudStack Spacing="3">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker Label="Start Date"
+                                       DateFormat="dd/MM/yyyy"
+                                       Date="@auction.StartDate"
+                                       DateChanged="@(d => auction.StartDate = d.Value)"
+                                       Variant="Variant.Outlined"
+                                       Error="validator.HasError(1) && auction.StartDateTime.Date >= DateTime.Today" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTimePicker Label="Start Time"
+                                       Time="@auction.StartTime"
+                                       TimeChanged="@(d => auction.StartTime = d.Value)"
+                                       Variant="Variant.Outlined"
+                                       Error="validator.HasError(1) && auction.StartDateTime.Date >= DateTime.Today" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker Label="End Date"
+                                       DateFormat="dd/MM/yyyy"
+                                       Date="@auction.EndDate"
+                                       DateChanged="@(d => auction.EndDate = d.Value)"
+                                       Variant="Variant.Outlined"
+                                       Error="validator.HasError(1) && auction.EndDateTime >= auction.StartDateTime" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTimePicker Label="End Time"
+                                       Time="@auction.EndTime"
+                                       TimeChanged="@(d => auction.EndTime = d.Value)"
+                                       Variant="Variant.Outlined"
+                                       Error="validator.HasError(1) && auction.EndDateTime >= auction.StartDateTime" />
+                    </MudItem>
+                </MudGrid>
+
+                <!-- Validation message below -->
+                @if (validator.HasError(1))
+                {
+                    @foreach (var message in validator.GetErrorMessages(1))
+                    {
+                        <MudText Color="Color.Error" Typo="Typo.caption">@message</MudText>
+                    }
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption">
+                        Select valid start and end dates for your auction.
+                    </MudText>
+                }
+            </MudStack>
+        </MudStep>
+
+        <!-- STEP 3 -->
+        <MudStep Title="Step 3: Optional Settings"
+                 SecondaryText="Live auction toggle"
+                 CompletedChanged="OnSubmitAuction">
+            <MudStack Spacing="3">
+                <MudSwitch @bind-Value="auction.LiveFlag"
+                           Color="Color.Success"
+                           Label="Make Auction Live?" />
+            </MudStack>
+        </MudStep>
+    </MudStepper>
+</MudContainer>
