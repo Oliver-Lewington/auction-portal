@@ -1,0 +1,96 @@
+﻿@page "/{AuctionId:guid}/products/create"
+
+@using AuctionPortal.Components.ImageCarousel
+@using AuctionPortal.Components.Pages.Product
+@using AuctionPortal.Data.Models
+@using AuctionPortal.Services
+@using AuctionPortal.ViewModels
+
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-3">
+    <MudText Typo="Typo.h4" GutterBottom="true">Create a New Product</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-4">
+        Follow the steps below to add your item to the auction. You can add images, describe your item, and set costs.
+    </MudText>
+    <MudDivider Class="my-4" />
+
+    <MudPaper Elevation="1" Class="p-4">
+        <MudStepper @ref="stepper" OnPreviewInteraction="validator.OnPreviewInteraction">
+
+            <!-- Step 1: Images -->
+            <MudStep Title="Step 1: Upload Images" SecondaryText="Add product images" HasError="validator.HasError(0)">
+                <MudStack Spacing="3">
+                    <ProductImageManager CarouselImages="carouselImages" />
+                    @if (validator.HasError(0))
+                    {
+                        @foreach (var msg in validator.GetErrorMessages(0))
+                        {
+                            <MudText Color="Color.Error" Typo="Typo.caption">@msg</MudText>
+                        }
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption">Upload at least one image.</MudText>
+                    }
+                </MudStack>
+            </MudStep>
+
+            <!-- Step 2: Description -->
+            <MudStep Title="Step 2: Describe Your Item" SecondaryText="Enter name and description" HasError="validator.HasError(1)">
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="product.Title"
+                                  Label="Name"
+                                  Variant="Variant.Outlined"
+                                  Error="validator.HasError(1)"
+                                  FullWidth="true" />
+                    <MudTextField @bind-Value="product.Description"
+                                  Label="Description"
+                                  Lines="4"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  HelperText="Optional: Add more detail about your product." />
+
+                    @if (validator.HasError(1))
+                    {
+                        @foreach (var msg in validator.GetErrorMessages(1))
+                        {
+                            <MudText Color="Color.Error" Typo="Typo.caption">@msg</MudText>
+                        }
+                    }
+                </MudStack>
+            </MudStep>
+
+            <!-- Step 3: Costs -->
+            <MudStep Title="Step 3: Set Pricing" SecondaryText="Starting price, reserve, expiry"
+                     HasError="validator.HasError(2)" CompletedChanged="OnSubmitProduct">
+                <MudStack Spacing="3">
+                    <MudNumericField @bind-Value="product.StartingPrice"
+                                     Label="Starting Price (£)"
+                                     Variant="Variant.Outlined"
+                                     Error="validator.HasError(2) && product.StartingPrice <= 0"
+                                     FullWidth="true" />
+
+                    <MudNumericField @bind-Value="product.ReservePrice"
+                                     Label="Reserve Price (£)"
+                                     Variant="Variant.Outlined"
+                                     FullWidth="true" />
+
+                    <MudDatePicker Label="Expiry Date"
+                                   Date="@ExpiryDateNullable"
+                                   DateChanged="@(d => ExpiryDateNullable = d)"
+                                   Error="validator.HasError(2) && ExpiryDateNullable != default || product.ExpiryDate < DateTime.Now"
+                                   Variant="Variant.Outlined" />
+
+                    @if (validator.HasError(2))
+                    {
+                        @foreach (var msg in validator.GetErrorMessages(2))
+                        {
+                            <MudText Color="Color.Error" Typo="Typo.caption">@msg</MudText>
+                        }
+                    }
+                </MudStack>
+            </MudStep>
+        </MudStepper>
+    </MudPaper>
+</MudContainer>

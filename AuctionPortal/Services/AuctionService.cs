@@ -1,6 +1,7 @@
 ﻿using AuctionPortal.Data;
 using AuctionPortal.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace AuctionPortal.Services;
 
@@ -13,7 +14,7 @@ public class AuctionService : IAuctionService
         _dbContext = dbContext;
     }
 
-    public async Task<Auction> CreateAuctionAsync(Auction auction, CancellationToken cancellationToken = default)
+    public async Task<AuctionModel> CreateAuctionAsync(AuctionModel auction, CancellationToken cancellationToken = default)
     {
         if (auction.Id == Guid.Empty)
             auction.Id = Guid.NewGuid();
@@ -24,25 +25,32 @@ public class AuctionService : IAuctionService
         return auction;
     }
 
-    public async Task<IEnumerable<Auction>> GetAuctionsAsync(CancellationToken cancellationToken = default) => 
+    public async Task<IEnumerable<AuctionModel>> GetAuctionsAsync(CancellationToken cancellationToken = default) => 
         await _dbContext.Auctions
                 .Include(a => a.Products)
                 .AsNoTracking().OrderBy(a => a.EndTime)
                 .ToListAsync(cancellationToken);
 
-    public async Task<Auction?> GetAuctionByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+    public async Task<AuctionModel?> GetAuctionByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
          await _dbContext.Auctions
                 .Include(a => a.Products)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
-    public Task UpdateAuctionAsync(Auction auction)
+    public Task UpdateAuctionAsync(AuctionModel auction)
     {
         throw new NotImplementedException();
     }
 
-    public Task DeleteAuctionAsync(Guid id)
+    public async Task DeleteAuctionAsync(Guid id)
     {
-        throw new NotImplementedException();
+        var auction = await _dbContext.Auctions.FindAsync(id);
+        if (auction != null)
+        {
+            _dbContext.Auctions.Remove(auction);
+            await _dbContext.SaveChangesAsync();
+        }
     }
+
+
 }

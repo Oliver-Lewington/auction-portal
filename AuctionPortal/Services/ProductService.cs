@@ -13,20 +13,25 @@ public class ProductService : IProductService
         _dbContext = dbContext;
     }
 
-    public async Task<Product> AddAuctionProductAsync(Product item, CancellationToken cancellationToken = default)
+    public async Task<ProductModel> AddAuctionProductAsync(ProductModel item, CancellationToken cancellationToken = default)
     {
         _dbContext.Products.Add(item);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return item;
     }
 
-    public async Task<IEnumerable<Product>> GetAuctionProductsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ProductModel>> GetAuctionProductsAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.Products.AsNoTracking().ToListAsync(cancellationToken);
     }
 
-    public async Task<Product?> GetAuctionProductByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ProductModel?> GetAuctionProductByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public Task<ProductModel?> DeleteProductAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 }
