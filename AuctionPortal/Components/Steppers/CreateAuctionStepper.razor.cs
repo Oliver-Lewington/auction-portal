@@ -15,6 +15,8 @@ public partial class CreateAuctionStepper : ComponentBase
     private AuctionViewModel auctionViewModel = new();
     private StepperValidator<AuctionViewModel> validator = default!;
 
+
+
     protected override void OnInitialized()
     {
         validator = new StepperValidator<AuctionViewModel>(auctionViewModel);
@@ -27,6 +29,17 @@ public partial class CreateAuctionStepper : ComponentBase
             "Auction must start on or after tomorrow.");
         validator.AddRule(1, a => a.EndsAt > a.BeginsAt,
             "End time must be after the start time.");
+    }
+
+    private void NavigateToAddProduct()
+    {
+        var redirectUrl = Uri.EscapeDataString(NavigationManager.Uri);
+        NavigationManager.NavigateTo($"/product/create?return={redirectUrl}?");
+    }
+
+    private async Task CreateDraftAuctionAsync(string sessionId)
+    {
+
     }
 
     private async Task OnSubmitAuction()

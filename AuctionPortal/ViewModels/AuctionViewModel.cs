@@ -6,6 +6,7 @@ public class AuctionViewModel
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool LiveFlag { get; set; }
+    public bool IsDraft { get; set; } = true;
 
     private DateTime _startDate = DateTime.Today.AddDays(1);
     public DateTime StartDate

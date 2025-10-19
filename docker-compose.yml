@@ -1,7 +1,10 @@
+version: '3.9'
+
 services:
   auction-portal:
     depends_on:
       - auction_portal_postgres
+      - auctionportal_redis
     build:
       context: .
       target: production
@@ -12,6 +15,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__DefaultConnection=Host=auction_portal_postgres;Database=auction_portal;Username=postgres;Password=ppp
+      - ConnectionStrings__Redis=auctionportal_redis:6379
     ports:
       - "5066:8080"
       - "7055:8081"
@@ -20,7 +25,7 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      
+
   auction_portal_postgres:
     image: postgres:15
     container_name: auction_portal_postgres
@@ -34,5 +39,15 @@ services:
     ports:
       - "5432:5432"
 
+  auctionportal_redis:
+    image: redis:7.2
+    container_name: auctionportal_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   pgdata:
+  redis_data:
