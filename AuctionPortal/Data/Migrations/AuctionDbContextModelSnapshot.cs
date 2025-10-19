@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace AuctionPortal.Migrations
+namespace AuctionPortal.Data.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
     partial class AuctionDbContextModelSnapshot : ModelSnapshot
@@ -55,59 +55,6 @@ namespace AuctionPortal.Migrations
                     b.ToTable("Auctions");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.BidModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid>("AuctionItemId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuctionItemId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Bids");
-                });
-
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImageModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Alt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Caption")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("ProductModelId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductModelId");
-
-                    b.ToTable("ProductImages");
-                });
-
             modelBuilder.Entity("AuctionPortal.Data.Models.ProductModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -152,63 +99,6 @@ namespace AuctionPortal.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.UserModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserModel");
-                });
-
-            modelBuilder.Entity("AuctionPortal.Data.Models.BidModel", b =>
-                {
-                    b.HasOne("AuctionPortal.Data.Models.ProductModel", "AuctionItem")
-                        .WithMany()
-                        .HasForeignKey("AuctionItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AuctionPortal.Data.Models.UserModel", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("AuctionItem");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImageModel", b =>
-                {
-                    b.HasOne("AuctionPortal.Data.Models.ProductModel", null)
-                        .WithMany("Images")
-                        .HasForeignKey("ProductModelId");
-                });
-
             modelBuilder.Entity("AuctionPortal.Data.Models.ProductModel", b =>
                 {
                     b.HasOne("AuctionPortal.Data.Models.AuctionModel", "Auction")
@@ -223,11 +113,6 @@ namespace AuctionPortal.Migrations
             modelBuilder.Entity("AuctionPortal.Data.Models.AuctionModel", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductModel", b =>
-                {
-                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

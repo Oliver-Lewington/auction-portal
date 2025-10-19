@@ -18,6 +18,6 @@ public class AuctionMappingProfile : Profile
             .ReverseMap()
             .ForMember(dest => dest.FinalBid, opt => opt.Ignore());
 
-        CreateMap<ProductImageModel, ImageInfoViewModel>().ReverseMap();
+        //CreateMap<ProductImageModel, ImageInfoViewModel>().ReverseMap();
     }
 }

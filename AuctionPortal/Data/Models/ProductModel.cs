@@ -21,7 +21,6 @@ public class ProductModel
     public string? FinalBidderName { get; set; } // Null if unsold
     public bool Sold => FinalBid.HasValue; // Computed property
 
-    public List<ProductImageModel> Images { get; set; } = new();  
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 }
