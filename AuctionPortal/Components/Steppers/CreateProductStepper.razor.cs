@@ -1,9 +1,12 @@
 ﻿using AuctionPortal.Components.ImageCarousel;
 using AuctionPortal.Data.Models;
 using AuctionPortal.Services;
+using AuctionPortal.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace AuctionPortal.Components.Steppers;
 
@@ -16,10 +19,10 @@ public partial class CreateProductStepper : ComponentBase
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] ISnackbar Snackbar { get; set; } = default!;
 
-    private ProductModel product = default!;
+    private ProductViewModel product = default!;
     private MudStepper stepper = default!;
     private List<ICarouselImage> carouselImages = new();
-    private StepperValidator<ProductModel> validator = default!;
+    private StepperValidator<ProductViewModel> validator = default!;
 
     private DateTime? ExpiryDateNullable
     {
@@ -29,12 +32,8 @@ public partial class CreateProductStepper : ComponentBase
 
     protected override void OnInitialized()
     {
-        product = new ProductModel()
-        {
-            AuctionId = AuctionId
-        };
-
-        validator = new StepperValidator<ProductModel>(product);
+        product = new ProductViewModel(AuctionId);
+        validator = new StepperValidator<ProductViewModel>(product);
 
         // STEP 1: At least one image
         validator.AddRule(0, p => carouselImages != null && carouselImages.Any(), "Please upload at least one image.");
@@ -52,6 +51,7 @@ public partial class CreateProductStepper : ComponentBase
         try
         {
             var savedProduct = await ProductService.AddAuctionProductAsync(product);
+
             NavigationManager.NavigateTo($"/{AuctionId}");
             Snackbar.Add($"Auction item '{savedProduct.Title}' saved successfully!", Severity.Success);
         }

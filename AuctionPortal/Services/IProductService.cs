@@ -1,12 +1,13 @@
 ﻿using AuctionPortal.Data.Models;
+using AuctionPortal.ViewModels;
 
 namespace AuctionPortal.Services
 {
     public interface IProductService
     {
-        Task<ProductModel> AddAuctionProductAsync(ProductModel item, CancellationToken cancellationToken = default);
-        Task<IEnumerable<ProductModel>> GetAuctionProductsAsync(CancellationToken cancellationToken = default);
-        Task<ProductModel?> GetAuctionProductByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<ProductModel?> DeleteProductAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<ProductViewModel> AddAuctionProductAsync(ProductViewModel item, CancellationToken cancellationToken = default);
+        Task<IEnumerable<ProductViewModel>> GetAuctionProductsAsync(CancellationToken cancellationToken = default);
+        Task<ProductViewModel> GetAuctionProductByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task DeleteProductAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

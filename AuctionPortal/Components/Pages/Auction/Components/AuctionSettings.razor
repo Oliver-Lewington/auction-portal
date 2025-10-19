@@ -55,48 +55,30 @@
                 <MudCheckBox T="bool" Dense="true" Size="Size.Small" Class="custom-checkbox-label" @bind-Checked="_notifyBidders">Notify bidders when auction starts</MudCheckBox>
                 <MudCheckBox T="bool" Dense="true" Size="Size.Small"  @bind-Checked="_notifyWinners" Label="Notify winners when auction ends" />
                 <MudCheckBox T="bool" Dense="true" Size="Size.Small" @bind-Checked="_notifyOutbid" Label="Notify bidders when outbid" />
+
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Outlined.Dangerous" Color="Color.Error" />
+                    <MudText Typo="Typo.subtitle1">Permanent Actions</MudText>
+                </MudStack>
+
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Info">Create Product</MudText>
+                        <MudButton Color="Color.Info" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" FullWidth="true" Class="mt-2" onclick="CreateProduct">Create</MudButton>
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Warning">Cancel Auction</MudText>
+                        <MudButton Color="Color.Warning" Variant="Variant.Outlined" Disabled="true" StartIcon="@Icons.Material.Outlined.Edit" FullWidth="true" Class="mt-2" onclick="EditAuction">Edit</MudButton>
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Error">Edit Auction</MudText>
+                        <MudButton Color="Color.Error" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Delete" FullWidth="true" Class="mt-2" onclick="DeleteAuction">Delete</MudButton>
+                    </MudItem>
+                </MudGrid>
             </MudStack>
         </MudPaper>
-    </MudItem>
-
-    @* Danger Zone Card *@
-    <MudItem xs="12">
-        <MudStack Spacing="3">
-            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                <MudIcon Color="Color.Error" Icon="@Icons.Material.Outlined.Warning" />
-                <MudText Typo="Typo.subtitle1">Danger Zone</MudText>
-            </MudStack>
-
-            <MudGrid>
-                <MudItem xs="12" md="4">
-                    <MudPaper Class="pa-3 d-flex flex-column" Style="height: 100%;">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Info">Create Product</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Info">Create a new product.</MudText>
-                        <MudSpacer />
-                        <MudButton Color="Color.Info" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" FullWidth="true" Class="mt-2" onclick="CreateProduct">Create</MudButton>
-                    </MudPaper>
-                </MudItem>
-
-                <MudItem xs="12" md="4">
-                    <MudPaper Class="pa-3 d-flex flex-column" Style="height: 100%;">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Warning">Cancel Auction</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Warning">Stop this auction and refund all bidders.</MudText>
-                        <MudSpacer />
-                        <MudButton Color="Color.Warning" Variant="Variant.Outlined" Disabled="true" StartIcon="@Icons.Material.Outlined.Edit" FullWidth="true" Class="mt-2" onclick="DeleteAuction">Edit</MudButton>
-                    </MudPaper>
-                </MudItem>
-
-                <MudItem xs="12" md="4">
-                    <MudPaper Class="pa-3 d-flex flex-column" Style="height: 100%;">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Error">Delete Auction</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Error">Permanently remove this auction and all its data.</MudText>
-                        <MudSpacer />
-                        <MudButton Color="Color.Error" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Delete" FullWidth="true" Class="mt-2" onclick="DeleteAuction">Delete</MudButton>
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
-
-        </MudStack>
     </MudItem>
 </MudGrid>
 

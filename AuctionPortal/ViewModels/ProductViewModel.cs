@@ -7,6 +7,12 @@ public class ProductViewModel
 {
     public Guid Id { get; set; }
     public Guid AuctionId { get; set; }
+
+    public ProductViewModel(Guid auctionId)
+    {
+        AuctionId = auctionId;
+    }
+
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public decimal StartingPrice { get; set; }

@@ -20,7 +20,7 @@
                  SecondaryText="Enter a name and description"
                  HasError="validator.HasError(0)">
             <MudStack Spacing="3">
-                <MudTextField @bind-Value="auction.Name"
+                <MudTextField @bind-Value="auctionViewModel.Name"
                               Label="Name"
                               Variant="Variant.Outlined"
                               FullWidth="true"
@@ -28,7 +28,7 @@
                               HelperText="@(!validator.HasError(0) ? "Enter a descriptive name for your auction." : null)"
                               ErrorText="@(validator.HasError(0) ? "Name is required." : null)" />
 
-                <MudTextField @bind-Value="auction.Description"
+                <MudTextField @bind-Value="auctionViewModel.Description"
                               Label="Description"
                               Lines="4"
                               Variant="Variant.Outlined"
@@ -46,17 +46,17 @@
                     <MudItem xs="12" sm="6">
                         <MudDatePicker Label="Start Date"
                                        DateFormat="dd/MM/yyyy"
-                                       Date="@auction.StartDate"
-                                       DateChanged="@(d => auction.StartDate = d.Value)"
+                                       Date="@auctionViewModel.StartDate"
+                                       DateChanged="@(d => auctionViewModel.StartDate = d.Value)"
                                        Variant="Variant.Outlined"
-                                       Error="validator.HasError(1) && auction.StartDateTime.Date >= DateTime.Today" />
+                                       Error="validator.HasError(1) && auctionViewModel.BeginsAt.Date >= DateTime.Today" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudTimePicker Label="Start Time"
-                                       Time="@auction.StartTime"
-                                       TimeChanged="@(d => auction.StartTime = d.Value)"
+                                       Time="@auctionViewModel.StartTime"
+                                       TimeChanged="@(d => auctionViewModel.StartTime = d.Value)"
                                        Variant="Variant.Outlined"
-                                       Error="validator.HasError(1) && auction.StartDateTime.Date >= DateTime.Today" />
+                                       Error="validator.HasError(1) && auctionViewModel.BeginsAt.Date >= DateTime.Today" />
                     </MudItem>
                 </MudGrid>
 
@@ -64,17 +64,17 @@
                     <MudItem xs="12" sm="6">
                         <MudDatePicker Label="End Date"
                                        DateFormat="dd/MM/yyyy"
-                                       Date="@auction.EndDate"
-                                       DateChanged="@(d => auction.EndDate = d.Value)"
+                                       Date="@auctionViewModel.EndDate"
+                                       DateChanged="@(d => auctionViewModel.EndDate = d.Value)"
                                        Variant="Variant.Outlined"
-                                       Error="validator.HasError(1) && auction.EndDateTime >= auction.StartDateTime" />
+                                       Error="validator.HasError(1) && auctionViewModel.EndsAt >= auctionViewModel.BeginsAt" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudTimePicker Label="End Time"
-                                       Time="@auction.EndTime"
-                                       TimeChanged="@(d => auction.EndTime = d.Value)"
+                                       Time="@auctionViewModel.EndTime"
+                                       TimeChanged="@(d => auctionViewModel.EndTime = d.Value)"
                                        Variant="Variant.Outlined"
-                                       Error="validator.HasError(1) && auction.EndDateTime >= auction.StartDateTime" />
+                                       Error="validator.HasError(1) && auctionViewModel.EndsAt >= auctionViewModel.BeginsAt" />
                     </MudItem>
                 </MudGrid>
 
@@ -100,7 +100,7 @@
                  SecondaryText="Live auction toggle"
                  CompletedChanged="OnSubmitAuction">
             <MudStack Spacing="3">
-                <MudSwitch @bind-Value="auction.LiveFlag"
+                <MudSwitch @bind-Value="auctionViewModel.LiveFlag"
                            Color="Color.Success"
                            Label="Make Auction Live?" />
             </MudStack>
