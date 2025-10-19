@@ -9,20 +9,17 @@
 
 <MudLayout>
     <MudAppBar Color="Color.Primary" Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle" />
         <MudText Typo="Typo.h5" Class="ml-3">Auction Portal</MudText>
         <MudSpacer />
         <MudIconButton Icon="@DarkLightModeButtonIcon" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Docked" Elevation="2">
-        <NavMenu />
-    </MudDrawer>
-
     <MudMainContent Class="pt-16 pa-4">
         <AppBreadcrumbs />
-        @Body
+        <MudContainer MaxWidth="MaxWidth.Large">
+            @Body
+        </MudContainer>
     </MudMainContent>
 </MudLayout>
 
@@ -33,7 +30,6 @@
 </div>
 
 @code {
-    private bool _drawerOpen = true;
     private bool _isDarkMode = false;
     private MudTheme? _theme;
 
@@ -41,8 +37,6 @@
     {
         _theme = MudblazorThemes.AtosTheme();
     }
-
-    private void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
     private void DarkModeToggle()
     {

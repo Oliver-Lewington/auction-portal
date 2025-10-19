@@ -1,0 +1,50 @@
+﻿@using MudBlazor
+
+<MudText Typo="Typo.h5">Products</MudText>
+
+@if (ProductRecords == null || !ProductRecords.Any())
+{
+    <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Elevation="2" Class="my-4">
+        There are no products in this auction yet.
+    </MudAlert>
+}
+else
+{
+    <!-- Product Cards for Current Page -->
+    <MudGrid Justify="Justify.FlexStart" Spacing="2" Class="mt-3">
+        @foreach (var product in CurrentPageProducts)
+        {
+            <MudItem xs="12" sm="6" md="6" lg="3">
+                <MudCard Class="mx-2 my-2">
+                    <MudCardMedia Image="https://placehold.co/600x400" Height="180" />
+
+                    <MudCardContent>
+                        <MudText Typo="Typo.subtitle1">@product.Title</MudText>
+                        <MudText Typo="Typo.body2" Class="secondary-text mb-2">
+                            @(product.Description ?? "No description provided.")
+                        </MudText>
+
+                        <MudStack Row Justify="Justify.SpaceBetween">
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility">
+                                View Details
+                            </MudButton>
+                            <MudStack Row Spacing="1">
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteProduct(product)" />
+                            </MudStack>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            
+        }
+    </MudGrid>
+
+    <!-- Pagination -->
+    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="mt-4">
+        <MudPagination SelectedChanged="OnSelectedChanged"
+                       Count="@TotalPages"
+                       Selected="@currentPage"
+                       Class="pa-4" />
+    </MudStack>
+}

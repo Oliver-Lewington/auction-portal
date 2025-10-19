@@ -1,29 +1,34 @@
-﻿using AuctionPortal.Data.Models;
+﻿using AuctionPortal.Dialogs;
+using AuctionPortal.Services;
+using AuctionPortal.ViewModels;
 using Microsoft.AspNetCore.Components;
-using System.Diagnostics;
-using System.Runtime.Intrinsics.X86;
+using MudBlazor;
 
 namespace AuctionPortal.Components.Pages.Auction.Components;
 
 public partial class AuctionSettings : ComponentBase
 {
+    [Inject] IAuctionService AuctionService { get; set; } = default!;
     [Inject] NavigationManager Navigation { get; set; } = default!;
+    [Inject] IDialogService DialogService { get; set; } = default!;
+    [Inject] ISnackbar Snackbar { get; set; } = default!;
 
-    [Parameter] public AuctionModel? Auction { get; set; } // Check for nullability and throw error if null
+    [Parameter] public AuctionViewModel Auction { get; set; } = default!;
 
     private string _auctionStatus = "Live";
     private bool _notifyBidders = true;
     private bool _notifyWinners = true;
     private bool _notifyOutbid = false;
 
-    protected override void OnParametersSet()
+    private async Task DeleteAuction()
     {
-        Debug.WriteLine($"AuctionSetting received Auction: {Auction?.Id}");
-    }
+        await AuctionDialogs.ConfirmAndDeleteEntity(
+            Auction.Id,
+            AuctionService,
+            DialogService,
+            Snackbar,
+            () => Task.Run(()=>Navigation.NavigateTo($"/")));
 
-    private void DeleteAuction()
-    {
-        // Navigation logic to add product page
     }
 
     private void EditAuction()

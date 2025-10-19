@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using StackExchange.Redis;
 using System.Security.Cryptography.X509Certificates;
 
 namespace AuctionPortal.Extensions;
@@ -24,9 +25,11 @@ public static class ServicesExtensions
             options.UseNpgsql(conn), ServiceLifetime.Scoped);
     }
 
-    public static void ConfigureHttpClient(this IServiceCollection services)
+    public static void ConfigureHttp(this IServiceCollection services)
     {
         services.AddHttpClient();
+        services.AddHttpContextAccessor();
+        services.AddAntiforgery();
     }
 
     public static void ConfigureMudBlazor(this IServiceCollection services)
@@ -64,6 +67,36 @@ public static class ServicesExtensions
 
             dataProtectionBuilder.ProtectKeysWithCertificate(cert);
         }
+    }
+
+    public static void ConfigureRedis(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            string redisConnectionString = configuration.GetConnectionString("Redis") ?? throw new NullReferenceException("Redis connection string is not configured.");
+
+            return ConnectionMultiplexer.Connect(redisConnectionString);
+        });
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("Redis");
+            options.InstanceName = "AuctionPortal:";
+        });
+
+        services.AddSingleton<SessionCacheService>();
+    }
+
+    public static void ConfigureSession(this IServiceCollection services)
+    {
+        services.AddSession(options =>
+        {
+            options.Cookie.Name = ".AuctionPortal.Session";
+            options.IdleTimeout = TimeSpan.FromHours(1);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+        });
     }
 
     public static void ConfigureLogging(this ILoggingBuilder logging)

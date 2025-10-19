@@ -1,7 +1,5 @@
-﻿using AuctionPortal.Data.Models;
-using AuctionPortal.Services;
+﻿using AuctionPortal.Services;
 using AuctionPortal.ViewModels;
-using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -10,43 +8,45 @@ namespace AuctionPortal.Components.Steppers;
 public partial class CreateAuctionStepper : ComponentBase
 {
     [Inject] IAuctionService AuctionService { get; set; } = default!;
-    [Inject] IMapper Mapper { get; set; } = default!;
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] ISnackbar Snackbar { get; set; } = default!;
 
-
-    private AuctionViewModel auction = new();
-    private StepperValidator<AuctionViewModel> validator = default!;
     private MudStepper stepper = default!;
+    private AuctionViewModel auctionViewModel = new();
+    private StepperValidator<AuctionViewModel> validator = default!;
+
+
 
     protected override void OnInitialized()
     {
-        validator = new StepperValidator<AuctionViewModel>(auction);
+        validator = new StepperValidator<AuctionViewModel>(auctionViewModel);
 
         // STEP 1
         validator.AddRule(0, a => !string.IsNullOrWhiteSpace(a.Name), "Name is required.");
 
         // STEP 2
-        validator.AddRule(1, a => a.StartDateTime.Date >= DateTime.Today.AddDays(1),
+        validator.AddRule(1, a => a.BeginsAt.Date >= DateTime.Today.AddDays(1),
             "Auction must start on or after tomorrow.");
-        validator.AddRule(1, a => a.EndDateTime > a.StartDateTime,
+        validator.AddRule(1, a => a.EndsAt > a.BeginsAt,
             "End time must be after the start time.");
+    }
+
+    private void NavigateToAddProduct()
+    {
+        var redirectUrl = Uri.EscapeDataString(NavigationManager.Uri);
+        NavigationManager.NavigateTo($"/product/create?return={redirectUrl}?");
+    }
+
+    private async Task CreateDraftAuctionAsync(string sessionId)
+    {
+
     }
 
     private async Task OnSubmitAuction()
     {
         try
         {
-            var model = new AuctionModel
-            {
-                Name = auction.Name,
-                Description = auction.Description,
-                StartTime = auction.StartDateTime,
-                EndTime = auction.EndDateTime,
-                LiveFlag = auction.LiveFlag
-            };
-
-            var savedAuction = await AuctionService.CreateAuctionAsync(model);
+            var savedAuction = await AuctionService.CreateAuctionAsync(auctionViewModel);
 
             Snackbar.Add($"Auction '{savedAuction.Name}' created successfully!", Severity.Success);
             NavigationManager.NavigateTo($"/{savedAuction.Id}");

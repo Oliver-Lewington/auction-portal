@@ -1,6 +1,7 @@
 ﻿@using AuctionPortal.Dialogs
 @using AuctionPortal.Services
 @using AuctionPortal.Data.Models
+@using AuctionPortal.ViewModels
 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -9,184 +10,161 @@
 
 @page "/"
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
-    @* Row 1 *@
-    <MudStack Spacing="5">
-        <MudGrid Justify="Justify.SpaceBetween" Class="align-center">
+<MudStack Spacing="5">
+    <MudGrid Justify="Justify.SpaceBetween" Class="align-center">
+        <MudItem>
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h2"><b>Auction Management</b></MudText>
+                <MudText Typo="Typo.body1">Manage all auctions in your system</MudText>
+            </MudStack>
+        </MudItem>
+        @if (auctionViewModels.Count() != 0)
+        {
             <MudItem>
-                <MudStack Spacing="0">
-                    <MudText Typo="Typo.h2"><b>Auction Management</b></MudText>
-                    <MudText Typo="Typo.body1">Manage all auctions in your system</MudText>
-                </MudStack>
-            </MudItem>
-            @if (_auctions?.Count() != 0)
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="CreateAuction">
+                Create Auction
+            </MudButton>
+        </MudItem>
+        }
+    </MudGrid>
+
+    @if (auctionViewModels == null || auctionViewModels.Count() == 0)
+    {
+        <MudPaper Class="pa-6" Elevation="2">
+            <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
+            <MudText Typo="Typo.h5" Class="mb-2">No Auctions Available</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4">
+                Start creating auctions now to see them listed here.
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="@CreateAuction">
+                Create Auction
+            </MudButton>
+        </MudPaper>
+    }
+    else {
+        @* Row 2 *@
+        <MudPaper Class="pa-4">
+            <MudGrid Spacing="2">
+                <!-- Search Input -->
+                <MudItem xs="12" sm="6" lg="6">
+                    <MudText Typo="Typo.body2">Search</MudText>
+                    <MudTextField @bind-Value="_searchText"
+                                    Placeholder="Search auctions..."
+                                    Adornment="Adornment.Start"
+                                    AdornmentIcon="@Icons.Material.Outlined.Search"
+                                    Class="w-full"
+                                    Variant="Variant.Outlined"
+                                    Margin="Margin.Dense"
+                                    Immediate="true" />
+                </MudItem>
+
+                <!-- Status Select -->
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudText Typo="Typo.body2">Status</MudText>
+                    <MudSelect T="string" @bind-Value="_status" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem Value="@("All")" />
+                        <MudSelectItem Value="@("Live")" />
+                        <MudSelectItem Value="@("Upcoming")" />
+                        <MudSelectItem Value="@("Completed")" />
+                    </MudSelect>
+                </MudItem>
+
+                <!-- Sort By Select -->
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudText Typo="Typo.body2">Sort By</MudText>
+                    <MudSelect T="string" @bind-Value="_sortBy" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem Value="@("Newest")" />
+                        <MudSelectItem Value="@("Oldest")" />
+                        <MudSelectItem Value="@("Name (A-Z)")" />
+                        <MudSelectItem Value="@("Name (Z-A)")" />
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        @* Row 3 *@
+        <MudGrid>
+            @foreach (AuctionViewModel auctionViewModel in auctionViewModels)
             {
-                <MudItem>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="CreateAuction">
-                    Create Auction
-                </MudButton>
-            </MudItem>
+                <MudItem xs="12" sm="6" md="6" lg="4" xl="4">
+                    <MudCard>
+                        <!-- Image with LIVE badge -->
+                        <MudCardMedia Image="https://placehold.co/600x400" Height="225"/>
+
+                        @if (auctionViewModel.LiveFlag)
+                        {
+                            <div class="ma-2" style="position: absolute;">
+                                <MudChip T="string" Color="Color.Error"
+                                            Size="Size.Small"
+                                            Class="live-badge">
+                                    <b>LIVE</b>
+                                </MudChip>
+                            </div>
+                        }
+
+                        <!-- Card Content -->
+                        <MudCardContent Class="p-4">
+                            <MudStack Row Justify="Justify.SpaceBetween" Class="mb-2">
+                                <MudText Typo="Typo.h5">@auctionViewModel.Name</MudText>
+                                <MudChip T="string" Label=true Size="Size.Small" Class="secondary-text">
+                                    @($"{auctionViewModel.Products.Count} product{(auctionViewModel.Products.Count == 1 ? "" : "s")}")
+                                </MudChip>
+                            </MudStack>
+
+                            <MudText Typo="Typo.body2" Color="Color.Surface" Class="secondary-text card-description">
+                                @(auctionViewModel.Description ?? "A description has not been created for this auction yet.")
+                            </MudText>
+
+                            <MudGrid Class="text-sm mb-4">
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2" Class="secondary-text">Starts</MudText>
+                                    <MudText Typo="Typo.h6">@auctionViewModel.BeginsAt.ToString("MMM dd, yyyy")</MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2" Class="secondary-text">Ends</MudText>
+                                    <MudText Typo="Typo.h6">@auctionViewModel.BeginsAt.ToString("MMM dd, yyyy")</MudText>
+                                </MudItem>
+                            </MudGrid>
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility" OnClick="() => ViewAuction(auctionViewModel.Id)" >
+                                    View Details
+                                </MudButton>
+
+                                <MudStack Row Spacing="1">
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="() => EditAuction(auctionViewModel.Id)" />
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="() => DeleteAuction(auctionViewModel.Id)" />
+                                </MudStack>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
             }
         </MudGrid>
-
-        @if (_auctions == null || _auctions?.Count() == 0) {
-            <MudPaper Class="pa-6 text-center" Elevation="2" Style="border:1px solid var(--mud-palette-divider); background-color:var(--mud-palette-surface);">
-                <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
-                <MudText Typo="Typo.h5" Class="mb-2">No Auctions Available</MudText>
-                <MudText Typo="Typo.body2" Class="mb-4">
-                    Start creating auctions now to see them listed here.
-                </MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="@CreateAuction">
-                    Create Auction
-                </MudButton>
-            </MudPaper>
-        }
-        else {
-            @* Row 2 *@
-            <MudPaper Class="pa-4">
-                <MudGrid Spacing="2">
-                    <!-- Search Input -->
-                    <MudItem xs="12" sm="6" lg="6">
-                        <MudText Typo="Typo.body2">Search</MudText>
-                        <MudTextField @bind-Value="_searchText"
-                                        Placeholder="Search auctions..."
-                                        Adornment="Adornment.Start"
-                                        AdornmentIcon="@Icons.Material.Outlined.Search"
-                                        Class="w-full"
-                                        Variant="Variant.Outlined"
-                                        Margin="Margin.Dense"
-                                        Immediate="true" />
-                    </MudItem>
-
-                    <!-- Status Select -->
-                    <MudItem xs="12" sm="6" lg="3">
-                        <MudText Typo="Typo.body2">Status</MudText>
-                        <MudSelect T="string" @bind-Value="_status" Variant="Variant.Outlined" Margin="Margin.Dense">
-                            <MudSelectItem Value="@("All")" />
-                            <MudSelectItem Value="@("Live")" />
-                            <MudSelectItem Value="@("Upcoming")" />
-                            <MudSelectItem Value="@("Completed")" />
-                        </MudSelect>
-                    </MudItem>
-
-                    <!-- Sort By Select -->
-                    <MudItem xs="12" sm="6" lg="3">
-                        <MudText Typo="Typo.body2">Sort By</MudText>
-                        <MudSelect T="string" @bind-Value="_sortBy" Variant="Variant.Outlined" Margin="Margin.Dense">
-                            <MudSelectItem Value="@("Newest")" />
-                            <MudSelectItem Value="@("Oldest")" />
-                            <MudSelectItem Value="@("Name (A-Z)")" />
-                            <MudSelectItem Value="@("Name (Z-A)")" />
-                        </MudSelect>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
-
-            @* Row 3 *@
-            <MudGrid>
-                @foreach (AuctionModel auction in _auctions)
-                {
-                    <MudItem xs="12" sm="6" md="6" lg="4" xl="4">
-                        <MudCard>
-                            <!-- Image with LIVE badge -->
-                            <MudCardMedia Image="https://placehold.co/600x400" Height="225"/>
-
-                            @if (auction.LiveFlag)
-                            {
-                                <div class="ma-2" style="position: absolute;">
-                                    <MudChip T="string" Color="Color.Error"
-                                                Size="Size.Small"
-                                                Class="live-badge">
-                                        <b>LIVE</b>
-                                    </MudChip>
-                                </div>
-                            }
-
-                            <!-- Card Content -->
-                            <MudCardContent Class="p-4">
-                                <MudStack Row Justify="Justify.SpaceBetween" Class="mb-2">
-                                    <MudText Typo="Typo.h5">@auction.Name</MudText>
-                                    <MudChip T="string" Label=true Size="Size.Small" Class="secondary-text">
-                                        @($"{auction.Products.Count} product{(auction.Products.Count == 1 ? "" : "s")}")
-                                    </MudChip>
-                                </MudStack>
-
-                                <MudText Typo="Typo.body2" Color="Color.Surface" Class="secondary-text card-description">
-                                    @(auction.Description ?? "A description has not been created for this auction yet.")
-                                </MudText>
-
-                                <MudGrid Class="text-sm mb-4">
-                                    <MudItem xs="6">
-                                        <MudText Typo="Typo.body2" Class="secondary-text">Starts</MudText>
-                                        <MudText Typo="Typo.h6">@auction.StartTime?.ToString("MMM dd, yyyy")</MudText>
-                                    </MudItem>
-                                    <MudItem xs="6">
-                                        <MudText Typo="Typo.body2" Class="secondary-text">Ends</MudText>
-                                        <MudText Typo="Typo.h6">@auction.EndTime?.ToString("MMM dd, yyyy")</MudText>
-                                    </MudItem>
-                                </MudGrid>
-                                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility" OnClick="() => ViewAuction(auction.Id)" >
-                                        View Details
-                                    </MudButton>
-
-                                    <MudStack Row Spacing="1">
-                                        <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="() => EditAuction(auction.Id)" />
-                                        <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="() => DeleteAuction(auction)" />
-                                    </MudStack>
-                                </MudStack>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                }
-            </MudGrid>
-        }
-    </MudStack>
-</MudContainer>
+    }
+</MudStack>
 
 @code {
-    private IEnumerable<AuctionModel>? _auctions;
+    private IEnumerable<AuctionViewModel> auctionViewModels = new List<AuctionViewModel>();
     private string _searchText = "";
     private string _status = "All";
     private string _sortBy = "Newest";
 
     protected override async Task OnInitializedAsync()
     {
-        _auctions = await AuctionService.GetAuctionsAsync();
+        auctionViewModels = await AuctionService.GetAuctionsAsync();
     }
 
     private void CreateAuction() => NavigationManager.NavigateTo("/create");
     private void ViewAuction(Guid auctionId) => NavigationManager.NavigateTo($"/{auctionId}");
     private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/edit/{auctionId}");
 
-    private async Task DeleteAuction(AuctionModel auction)
+    private async Task DeleteAuction(Guid  id)
     {
-        if (auction == null) return;
-
-        var parameters = new DialogParameters
-        {
-            { "ContentText", $"Are you sure you want to delete '{auction.Name}'? This cannot be undone." },
-            { "ButtonText", "Delete" },
-            { "Color", Color.Error }
-        };
-
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<DeleteDialog>("Confirm Delete", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
-        {
-            try
-            {
-                await AuctionService.DeleteAuctionAsync(auction.Id);
-                Snackbar.Add("Auction deleted successfully.", Severity.Success);
-                _auctions = await AuctionService.GetAuctionsAsync(); // refresh list
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                Snackbar.Add($"Failed to delete auction: {ex.Message}", Severity.Error);
-            }
-        }
+        await AuctionDialogs.ConfirmAndDeleteEntity(
+            id,
+            AuctionService,
+            DialogService,
+            Snackbar,
+            async () => auctionViewModels = await AuctionService.GetAuctionsAsync());
     }
 }
