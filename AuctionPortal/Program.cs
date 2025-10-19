@@ -11,7 +11,7 @@ builder.Services.AddRazorComponents()
 // Configure Services
 builder.Services.ConfigureDatabase(builder.Configuration);
 builder.Services.AddAutoMapper(cfg => { }, typeof(AuctionMappingProfile));
-builder.Services.ConfigureSession();
+builder.Services.ConfigureAuthenticaiton();
 builder.Services.ConfigureHttp();
 builder.Services.ConfigureMudBlazor();
 builder.Services.ConfigureAuctionServices();

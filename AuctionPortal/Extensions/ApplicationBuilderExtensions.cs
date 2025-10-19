@@ -14,19 +14,26 @@ public static class ApplicationBuilderExtensions
 
     public static void ConfigurePipeline(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment())
         {
-            app.UseExceptionHandler("/Error", createScopeForErrors: true);
-            app.UseHsts();
+            app.UseMigrationsEndPoint();
         }
         else
         {
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseAntiforgery();
+            app.UseExceptionHandler("/Error", createScopeForErrors: true);
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
         }
+
+        app.UseHttpsRedirection();
+
+        app.UseStaticFiles();
+        app.UseAntiforgery();
 
         app.MapRazorComponents<App>()
            .AddInteractiveServerRenderMode();
+
+        // Add additional endpoints required by the Identity /Account Razor components.
+        app.MapAdditionalIdentityEndpoints();
     }
 }
