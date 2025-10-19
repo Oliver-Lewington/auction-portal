@@ -63,7 +63,7 @@ public class ProductService : IProductService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task DeleteEntityByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var productModel = await _dbContext.Products.FindAsync(id);
         if (productModel != null)

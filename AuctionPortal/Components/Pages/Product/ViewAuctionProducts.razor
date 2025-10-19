@@ -11,31 +11,34 @@
 else
 {
     <!-- Product Cards for Current Page -->
-    <MudStack Row Wrap="Wrap.Wrap" Justify="Justify.FlexStart" Spacing="2" Class="mt-3">
+    <MudGrid Justify="Justify.FlexStart" Spacing="2" Class="mt-3">
         @foreach (var product in CurrentPageProducts)
         {
-            <MudCard Class="mx-2 my-2" Style="width: 260px;">
-                <MudCardMedia Image="https://placehold.co/600x400" Height="180" />
+            <MudItem xs="12" sm="6" md="6" lg="3">
+                <MudCard Class="mx-2 my-2">
+                    <MudCardMedia Image="https://placehold.co/600x400" Height="180" />
 
-                <MudCardContent>
-                    <MudText Typo="Typo.subtitle1">@product.Title</MudText>
-                    <MudText Typo="Typo.body2" Class="secondary-text mb-2">
-                        @product.Description ?? "No description provided."
-                    </MudText>
+                    <MudCardContent>
+                        <MudText Typo="Typo.subtitle1">@product.Title</MudText>
+                        <MudText Typo="Typo.body2" Class="secondary-text mb-2">
+                            @(product.Description ?? "No description provided.")
+                        </MudText>
 
-                    <MudStack Row Justify="Justify.SpaceBetween">
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility">
-                            View Details
-                        </MudButton>
-                        <MudStack Row Spacing="1">
-                            <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" />
-                            <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" Color="Color.Error" />
+                        <MudStack Row Justify="Justify.SpaceBetween">
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility">
+                                View Details
+                            </MudButton>
+                            <MudStack Row Spacing="1">
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteProduct(product)" />
+                            </MudStack>
                         </MudStack>
-                    </MudStack>
-                </MudCardContent>
-            </MudCard>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            
         }
-    </MudStack>
+    </MudGrid>
 
     <!-- Pagination -->
     <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="mt-4">

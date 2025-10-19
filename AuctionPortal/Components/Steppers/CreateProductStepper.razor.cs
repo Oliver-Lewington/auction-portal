@@ -15,7 +15,6 @@ public partial class CreateProductStepper : ComponentBase
     [Parameter] public Guid AuctionId { get; set; }
 
     [Inject] IProductService ProductService { get; set; } = default!;
-    [Inject] IMapper Mapper { get; set; } = default!;
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] ISnackbar Snackbar { get; set; } = default!;
 

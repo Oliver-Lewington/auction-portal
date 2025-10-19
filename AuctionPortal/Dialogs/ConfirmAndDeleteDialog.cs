@@ -1,25 +1,23 @@
-﻿using AuctionPortal.Data.Models;
-using AuctionPortal.Services;
-using AuctionPortal.ViewModels;
+﻿using AuctionPortal.Services;
 using MudBlazor;
 
 namespace AuctionPortal.Dialogs;
 
 public static class AuctionDialogs
 {
-    public static async Task<bool> ConfirmAndDeleteAuction(
-        Guid auctionId,
-        IAuctionService auctionService,
+    public static async Task<bool> ConfirmAndDeleteEntity(
+        Guid id,
+        IDataService dataService,
         IDialogService dialogService,
         ISnackbar snackbar,
         Func<Task>? refreshCallback = null)
     {
-        if (auctionId == Guid.Empty)
+        if (id == Guid.Empty)
             return false;
 
         var parameters = new DialogParameters
         {
-            { "ContentText", $"Are you sure you want to delete this auction? This cannot be undone." },
+            { "ContentText", $"Are you sure you want to delete this entity? This cannot be undone." },
             { "ButtonText", "Delete" },
             { "Color", Color.Error }
         };
@@ -33,7 +31,7 @@ public static class AuctionDialogs
 
         try
         {
-            await auctionService.DeleteAuctionAsync(auctionId);
+            await dataService.DeleteEntityByIdAsync(id);
             snackbar.Add("Auction deleted successfully.", Severity.Success);
 
             if (refreshCallback != null)

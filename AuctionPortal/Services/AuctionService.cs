@@ -59,7 +59,7 @@ public class AuctionService : IAuctionService
         throw new NotImplementedException();
     }
 
-    public async Task DeleteAuctionAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task DeleteEntityByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var auction = await _dbContext.Auctions.FindAsync(id);
         if (auction != null)

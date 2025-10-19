@@ -160,7 +160,7 @@
 
     private async Task DeleteAuction(Guid  id)
     {
-        await AuctionDialogs.ConfirmAndDeleteAuction(
+        await AuctionDialogs.ConfirmAndDeleteEntity(
             id,
             AuctionService,
             DialogService,

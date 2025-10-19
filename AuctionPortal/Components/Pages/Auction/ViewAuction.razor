@@ -72,8 +72,7 @@
                          Text="Products"
                          BadgeData="@auctionViewModel?.Products.Count"
                          BadgeColor="Color.Primary">
-                <ViewAuctionProducts ProductRecords="auctionRecord.Products" />
-                
+                <ViewAuctionProducts ProductRecords="auctionViewModel?.Products" />
             </MudTabPanel>
 
             <!-- Bidders Tab -->
