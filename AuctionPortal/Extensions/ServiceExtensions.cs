@@ -73,9 +73,9 @@ public static class ServicesExtensions
             options.SlidingExpiration = true;
 
             // Important: Set correct paths for Identity pages
-            options.LoginPath = "/Account/Login";
-            options.LogoutPath = "/Account/Logout";
-            options.AccessDeniedPath = "/Account/AccessDenied";
+            options.LoginPath = "/Identity/Account/Login";
+            options.LogoutPath = "/Identity/Account/Logout";
+            options.AccessDeniedPath = "/Identity/Account/AccessDenied";
         });
 
         // Add Razor Pages support for Identity UI
@@ -85,6 +85,8 @@ public static class ServicesExtensions
     public static void ConfigureHttp(this IServiceCollection services)
     {
         services.AddHttpClient();
+        services.AddHttpContextAccessor();
+        services.AddAntiforgery();
     }
 
     public static void ConfigureMudBlazor(this IServiceCollection services)
@@ -139,6 +141,18 @@ public static class ServicesExtensions
         });
 
         services.AddSingleton<SessionCacheService>();
+    }
+
+    public static void ConfigureSession(this IServiceCollection services)
+    {
+        services.AddSession(options =>
+        {
+            options.Cookie.Name = ".AuctionPortal.Session";
+            options.IdleTimeout = TimeSpan.FromHours(1);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+        });
     }
 
     public static void ConfigureLogging(this ILoggingBuilder logging)

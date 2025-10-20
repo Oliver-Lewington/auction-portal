@@ -1,4 +1,6 @@
-﻿@using AuctionPortal.Dialogs
+﻿@page "/"
+
+@using AuctionPortal.Dialogs
 @using AuctionPortal.Services
 @using AuctionPortal.Data.Models
 @using AuctionPortal.ViewModels
@@ -7,8 +9,6 @@
 @inject IDialogService DialogService
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
-
-@page "/"
 
 <MudStack Spacing="5">
     <MudGrid Justify="Justify.SpaceBetween" Class="align-center">
