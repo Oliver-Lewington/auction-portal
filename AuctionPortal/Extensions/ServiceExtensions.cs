@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using AuctionPortal.Components.Account;
 using StackExchange.Redis;
 using System.Security.Cryptography.X509Certificates;
 
@@ -72,14 +73,12 @@ public static class ServicesExtensions
             options.ExpireTimeSpan = TimeSpan.FromDays(14);
             options.SlidingExpiration = true;
 
-            // Important: Set correct paths for Identity pages
-            options.LoginPath = "/Identity/Account/Login";
-            options.LogoutPath = "/Identity/Account/Logout";
-            options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+            options.LoginPath = "/Account/Login";
+            options.LogoutPath = "/Account/Logout";
+            options.AccessDeniedPath = "/Account/AccessDenied";
         });
 
-        // Add Razor Pages support for Identity UI
-        services.AddRazorPages();
+        services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
     }
 
     public static void ConfigureHttp(this IServiceCollection services)

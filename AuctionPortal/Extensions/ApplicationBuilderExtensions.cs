@@ -17,6 +17,7 @@ public static class ApplicationBuilderExtensions
         if (app.Environment.IsDevelopment())
         {
             app.UseMigrationsEndPoint();
+            app.UseDeveloperExceptionPage();
         }
         else
         {
@@ -27,9 +28,9 @@ public static class ApplicationBuilderExtensions
 
         app.UseHttpsRedirection();
 
-        app.UseStaticFiles();
         app.UseAntiforgery();
 
+        app.UseStaticFiles();
         app.MapRazorComponents<App>()
            .AddInteractiveServerRenderMode();
 

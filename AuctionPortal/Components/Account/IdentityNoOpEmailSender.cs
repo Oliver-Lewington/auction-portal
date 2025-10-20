@@ -1,6 +1,6 @@
-using AuctionPortal.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using AuctionPortal.Data.Models;
 
 namespace AuctionPortal.Components.Account
 {

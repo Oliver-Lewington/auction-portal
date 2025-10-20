@@ -1,14 +1,14 @@
-using System.Security.Claims;
-using System.Text.Json;
-using AuctionPortal.Components.Account.Pages;
-using AuctionPortal.Components.Account.Pages.Manage;
-using AuctionPortal.Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using AuctionPortal.Components.Account.Pages;
+using AuctionPortal.Components.Account.Pages.Manage;
+using AuctionPortal.Data.Models;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Routing
 {
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Routing
 
             accountGroup.MapPost("/Logout", async (
                 ClaimsPrincipal user,
-                SignInManager<ApplicationUser> signInManager,
+                [FromServices] SignInManager<ApplicationUser> signInManager,
                 [FromForm] string returnUrl) =>
             {
                 await signInManager.SignOutAsync();
