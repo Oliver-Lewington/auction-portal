@@ -1,14 +1,16 @@
 ﻿
 using AuctionPortal.Data.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuctionPortal.Data;
-public class AuctionDbContext : DbContext
+
+public class AuctionDbContext : IdentityDbContext<ApplicationUser>
 {
     public AuctionDbContext(DbContextOptions<AuctionDbContext> options) : base(options) { }
 
-    public DbSet<BidModel> Bids { get; set; }
     public DbSet<AuctionModel> Auctions { get; set; }
     public DbSet<ProductModel> Products { get; set; }
-    public DbSet<ProductImageModel> ProductImages { get; set; }
+
 }

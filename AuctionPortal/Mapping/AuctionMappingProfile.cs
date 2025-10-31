@@ -8,16 +8,21 @@ public class AuctionMappingProfile : Profile
 {
     public AuctionMappingProfile()
     {
-        // Data Models ↔ ViewModels
         CreateMap<AuctionViewModel, AuctionModel>()
-            .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products))
-            .ReverseMap();
+                   .ForMember(dest => dest.Creator, opt => opt.Ignore()) // handled manually
+                   .ForMember(dest => dest.Id, opt => opt.Ignore())      // EF generates ID
+                   .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                   .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+
+        CreateMap<AuctionModel, AuctionViewModel>()
+            .ForMember(dest => dest.CreatorId, opt => opt.MapFrom(src => src.Creator.Id));
 
         CreateMap<ProductModel, ProductViewModel>()
             .ForMember(dest => dest.Sold, opt => opt.MapFrom(src => src.FinalBid.HasValue))
             .ReverseMap()
             .ForMember(dest => dest.FinalBid, opt => opt.Ignore());
 
-        CreateMap<ProductImageModel, ImageInfoViewModel>().ReverseMap();
+
+        //CreateMap<ProductImageModel, ImageInfoViewModel>().ReverseMap();
     }
 }

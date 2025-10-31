@@ -1,4 +1,6 @@
-﻿@using AuctionPortal.Dialogs
+﻿@page "/"
+
+@using AuctionPortal.Dialogs
 @using AuctionPortal.Services
 @using AuctionPortal.Data.Models
 @using AuctionPortal.ViewModels
@@ -8,8 +10,6 @@
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
 
-@page "/"
-
 <MudStack Spacing="5">
     <MudGrid Justify="Justify.SpaceBetween" Class="align-center">
         <MudItem>
@@ -18,14 +18,23 @@
                 <MudText Typo="Typo.body1">Manage all auctions in your system</MudText>
             </MudStack>
         </MudItem>
-        @if (auctionViewModels.Count() != 0)
-        {
-            <MudItem>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="CreateAuction">
-                Create Auction
-            </MudButton>
-        </MudItem>
-        }
+        <AuthorizeView Roles="AuctionAdmin">
+            <Authorized>
+                @if (auctionViewModels.Any())
+                {
+                    <MudItem>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="CreateAuction">
+                            Create Auction
+                        </MudButton>
+                    </MudItem>
+                }
+            </Authorized>
+            <NotAuthorized>
+                <MudItem>
+                    <MudText Typo="Typo.subtitle1">You do not have permission to see the admin button.</MudText>
+                </MudItem>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudGrid>
 
     @if (auctionViewModels == null || auctionViewModels.Count() == 0)
@@ -106,22 +115,22 @@
                         <MudCardContent Class="p-4">
                             <MudStack Row Justify="Justify.SpaceBetween" Class="mb-2">
                                 <MudText Typo="Typo.h5">@auctionViewModel.Name</MudText>
-                                <MudChip T="string" Label=true Size="Size.Small" Class="secondary-text">
+                                <MudChip T="string" Label=true Size="Size.Small" Class="text-secondary">
                                     @($"{auctionViewModel.Products.Count} product{(auctionViewModel.Products.Count == 1 ? "" : "s")}")
                                 </MudChip>
                             </MudStack>
 
-                            <MudText Typo="Typo.body2" Color="Color.Surface" Class="secondary-text card-description">
+                            <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-secondary card-description">
                                 @(auctionViewModel.Description ?? "A description has not been created for this auction yet.")
                             </MudText>
 
                             <MudGrid Class="text-sm mb-4">
                                 <MudItem xs="6">
-                                    <MudText Typo="Typo.body2" Class="secondary-text">Starts</MudText>
+                                    <MudText Typo="Typo.body2" Class="text-secondary">Starts</MudText>
                                     <MudText Typo="Typo.h6">@auctionViewModel.BeginsAt.ToString("MMM dd, yyyy")</MudText>
                                 </MudItem>
                                 <MudItem xs="6">
-                                    <MudText Typo="Typo.body2" Class="secondary-text">Ends</MudText>
+                                    <MudText Typo="Typo.body2" Class="text-secondary">Ends</MudText>
                                     <MudText Typo="Typo.h6">@auctionViewModel.BeginsAt.ToString("MMM dd, yyyy")</MudText>
                                 </MudItem>
                             </MudGrid>

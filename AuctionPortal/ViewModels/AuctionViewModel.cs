@@ -1,10 +1,13 @@
-﻿namespace AuctionPortal.ViewModels;
+﻿using AuctionPortal.Data.Models;
+
+namespace AuctionPortal.ViewModels;
 
 public class AuctionViewModel
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string CreatorId { get; set; } = null!;
     public bool LiveFlag { get; set; }
     public bool IsDraft { get; set; } = true;
 

@@ -1,0 +1,86 @@
+﻿@implements IDisposable
+
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (IsAuthenticated)
+{
+    <MudMenu AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopRight">
+        <ActivatorContent>
+            <MudAvatar Size="Size.Small" Color="Color.Tertiary" Class="cursor-pointer">
+                <MudText Class="text-sm"><b>@UserInitials</b></MudText>
+            </MudAvatar>
+        </ActivatorContent>
+        <ChildContent>
+            <MudMenuItem Disabled="true">@UserDisplayName</MudMenuItem>
+            <MudDivider />
+            <MudMenuItem Href="Account/Manage">
+                Profile
+            </MudMenuItem>
+            <form action="Account/Logout" method="post">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                <button type="submit" class="mud-nav-link mud-ripple">
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
+                </button>
+            </form>
+        </ChildContent>
+    </MudMenu>
+}
+else
+{
+    <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Inherit" Class="mx-2" Href="Account/Login">Log in</MudButton>
+    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Secondary" Href="Account/Register">Sign up</MudButton>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    private string? currentUrl;
+    private bool IsAuthenticated { get; set; }
+    private string? UserDisplayName { get; set; }
+    private string UserInitials => GetInitials(UserDisplayName);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Track the current URL
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+
+        // Get authentication state
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+
+        IsAuthenticated = user.Identity?.IsAuthenticated ?? false;
+
+        if (IsAuthenticated)
+        {
+            UserDisplayName = user.Identity?.Name
+                              ?? user.FindFirst(c => c.Type == "email")?.Value
+                              ?? "User";
+        }
+    }
+
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "?";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+            return parts[0][..1].ToUpperInvariant();
+
+        return string.Concat(parts[0][0], parts[^1][0]).ToUpperInvariant();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

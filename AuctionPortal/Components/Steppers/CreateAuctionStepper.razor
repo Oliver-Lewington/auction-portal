@@ -1,8 +1,7 @@
-﻿@page "/create"
-@using AuctionPortal.Data.Models
-@using AuctionPortal.Services
-@using AuctionPortal.ViewModels
-@using MudBlazor
+﻿@inherits ProtectedPageBase
+@page "/create"
+
+@using AuctionPortal.Components.Account
 
 <MudText Typo="Typo.h4" GutterBottom="true">Create a New Auction</MudText>
 <MudText Typo="Typo.subtitle2" Class="mb-4">
@@ -100,7 +99,7 @@
 
         <MudStack Spacing="3">
             <MudText Typo="Typo.subtitle1">Add Products to Your Auction</MudText>
-            <MudText Typo="Typo.caption" Class="secondary-text">
+            <MudText Typo="Typo.caption" Class="text-secondary">
                 You can add products now or later — your auction will remain in draft until published.
             </MudText>
 
@@ -119,11 +118,11 @@
     <!-- STEP 4 -->
     <MudStep Title="Step 4: Confirmation"
                 SecondaryText="Confirm all details are correct"
-                CompletedChanged="OnSubmitAuction">
+                CompletedChanged="OnCreateAuction">
 
         <MudStack Spacing="3">
             <MudText Typo="Typo.subtitle1">Confirm all things are correct</MudText>
-            <MudText Typo="Typo.caption" Class="secondary-text">
+            <MudText Typo="Typo.caption" Class="text-secondary">
                 Add text...
             </MudText>
 

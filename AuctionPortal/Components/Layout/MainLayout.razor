@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
+
 @using AuctionPortal.Components.Themes
+@using AuctionPortal.Data.Models
+@using Microsoft.AspNetCore.Identity
 @using MudBlazor
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
@@ -8,16 +11,20 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Color="Color.Primary" Elevation="1">
-        <MudText Typo="Typo.h5" Class="ml-3">Auction Portal</MudText>
+    <MudAppBar Color="Color.Primary" Elevation="1" >
+        <MudLink Color="Color.Inherit" Typo="Typo.h5" Href="/" Class="ml-3">Auction Portal</MudLink>
+
         <MudSpacer />
-        <MudIconButton Icon="@DarkLightModeButtonIcon" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+
+       @*  <!-- Dark/Light mode toggle -->
+        <MudIconButton Icon="@DarkLightModeButtonIcon" Color="Color.Inherit" OnClick="@DarkModeToggle" /> *@
+
+        <!-- User section -->
+        <NavMenu />
     </MudAppBar>
 
-    <MudMainContent Class="pt-16 pa-4">
-        <AppBreadcrumbs />
-        <MudContainer MaxWidth="MaxWidth.Large">
+    <MudMainContent>
+        <MudContainer Class="pt-7 pa-4" MaxWidth="MaxWidth.Large">
             @Body
         </MudContainer>
     </MudMainContent>
@@ -33,15 +40,15 @@
     private bool _isDarkMode = false;
     private MudTheme? _theme;
 
+
     protected override void OnInitialized()
     {
         _theme = MudblazorThemes.AtosTheme();
     }
 
-    private void DarkModeToggle()
-    {
-        _isDarkMode = !_isDarkMode;
-    }
+    private void DarkModeToggle() => _isDarkMode = !_isDarkMode;
+
+    
 
     public string DarkLightModeButtonIcon => _isDarkMode
         ? Icons.Material.Rounded.AutoMode

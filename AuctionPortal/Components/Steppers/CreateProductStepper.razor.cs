@@ -1,16 +1,13 @@
-﻿using AuctionPortal.Components.ImageCarousel;
-using AuctionPortal.Data.Models;
+﻿using AuctionPortal.Components.Account;
+using AuctionPortal.Components.ImageCarousel;
 using AuctionPortal.Services;
 using AuctionPortal.ViewModels;
-using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace AuctionPortal.Components.Steppers;
 
-public partial class CreateProductStepper : ComponentBase
+public partial class CreateProductStepper : ProtectedPageBase
 {
     [Parameter] public Guid AuctionId { get; set; }
 

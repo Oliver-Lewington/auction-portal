@@ -1,0 +1,107 @@
+﻿@page "/Account/Login"
+
+@using System.ComponentModel.DataAnnotations
+@using AuctionPortal.Components.Account.Shared
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using AuctionPortal.Data.Models
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Login</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-8">
+    <MudPaper Class="pa-7 rounded-lg" Elevation="6">
+
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
+            Login to your account
+        </MudText>
+
+        <MudDivider Class="my-2" />
+
+        <!-- Status/Error Message -->
+        <StatusMessage Message="@errorMessage" />
+
+        <!-- Login Form -->
+        <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login" Class="mt-4">
+            <DataAnnotationsValidator />
+
+            <MudStack Spacing="2">
+                <MudStaticTextField For="@(() => Input.Email)" @bind-Value="Input.Email"
+                                    Label="Email" Placeholder="name@example.com" Variant="Variant.Outlined" 
+                            UserAttributes="@(new() { { "autocomplete", "username" }, { "aria-required", "true" } })" />
+
+                <MudStaticTextField For="@(() => Input.Password)" @bind-Value="Input.Password" Variant="Variant.Outlined"
+                    Label="Password" InputType="InputType.Password" Placeholder="password" FullWidth="true"
+                    UserAttributes="@(new() { { "autocomplete", "current-password" }, { "aria-required", "true" } })" />
+        
+                <MudStaticCheckBox For="@(() => Input.RememberMe)" @bind-Value="Input.RememberMe">Remember me</MudStaticCheckBox>
+ 
+                <MudStaticButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" FormAction="FormAction.Submit">Login</MudStaticButton>
+            </MudStack>
+        </EditForm>
+
+        <div class="mt-3 d-flex justify-center flex-column align-center">
+            <MudText Typo="Typo.body2" Class="mb-1">Don't have an account?</MudText>
+            <MudLink Class="text-sm" Href="/Account/Register"><b>Sign up</b></MudLink>
+        </div>
+
+    </MudPaper>
+</MudContainer>
+@code {
+    private string? errorMessage;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Optional: clear external cookies
+    }
+
+    private async Task LoginUser()
+    {
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User logged in.");
+            Snackbar.Add($"Welcome {Input.Email}", Severity.Info);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo("Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "Invalid login attempt.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        public bool RememberMe { get; set; }
+    }
+}

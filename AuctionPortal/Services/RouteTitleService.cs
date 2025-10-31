@@ -4,9 +4,8 @@ public static class RouteTitleService
 {
     private static readonly Dictionary<string, string> Titles = new()
     {
-        ["/"] = "Home",
-        ["/auctions"] = "Auctions",
-        ["/auctions/create"] = "Create Auction",
+        ["/"] = "Auctions",
+        ["/create"] = "Create Auction",
         ["/products"] = "Products",
         ["/settings"] = "Settings"
     };

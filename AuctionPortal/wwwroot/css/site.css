@@ -29,7 +29,19 @@
     line-height: 1.6rem;
 }
 
-.secondary-text {
+.text-sm {
+    font-size: 13px;
+}
+
+.text-md {
+    font-size: 15px;
+}
+
+.text-lg {
+    font-size: 17.5px;
+}
+
+.text-secondary {
     color: var(--mud-palette-text-secondary);
 }
 

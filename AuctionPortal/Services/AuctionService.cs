@@ -17,17 +17,32 @@ public class AuctionService : IAuctionService
         _dbContext = dbContext;
     }
 
-    public async Task<AuctionViewModel> CreateAuctionAsync(AuctionViewModel auctionViewModel, CancellationToken cancellationToken = default)
+
+    public async Task<AuctionViewModel> CreateAuctionAsync(AuctionViewModel viewModel, CancellationToken cancellationToken = default)
     {
-        if (auctionViewModel.Id == Guid.Empty)
-            auctionViewModel.Id = Guid.NewGuid();
+        // Ensure the creator exists in the DB
+        var creator = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == viewModel.CreatorId);
 
-        var auctionModel = _mapper.Map<AuctionViewModel, AuctionModel>(auctionViewModel);
+        if (creator == null)
+        {
+            throw new InvalidOperationException("Creator not found in the database.");
+        }
 
-        _dbContext.Auctions.Add(auctionModel);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        // Map the view model to the entity
+        var auctionEntity = _mapper.Map<AuctionModel>(viewModel);
 
-        return auctionViewModel;
+        // Assign the linked ApplicationUser
+        auctionEntity.Creator = creator;
+        auctionEntity.CreatedAt = DateTime.UtcNow;
+        auctionEntity.UpdatedAt = DateTime.UtcNow;
+
+        // Save to DB
+        _dbContext.Auctions.Add(auctionEntity);
+        await _dbContext.SaveChangesAsync();
+
+        // Return the saved auction mapped back to view model
+        return _mapper.Map<AuctionViewModel>(auctionEntity);
     }
 
     public async Task<IEnumerable<AuctionViewModel>> GetAuctionsAsync(CancellationToken cancellationToken = default)

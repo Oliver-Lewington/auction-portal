@@ -1,12 +1,8 @@
-﻿@page "/{AuctionId:guid}/products/create"
+﻿@inherits ProtectedPageBase
+@page "/{AuctionId:guid}/products/create"
 
-@using AuctionPortal.Components.ImageCarousel
+@using AuctionPortal.Components.Account
 @using AuctionPortal.Components.Pages.Product
-@using AuctionPortal.Data.Models
-@using AuctionPortal.Services
-@using AuctionPortal.ViewModels
-
-@using MudBlazor
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-3">
     <MudText Typo="Typo.h4" GutterBottom="true">Create a New Product</MudText>

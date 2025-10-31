@@ -6,9 +6,10 @@ services:
     container_name: auction-portal-development
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=auction_portal_postgres;Database=auction_portal;Username=postgres;Password=ppp
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__DefaultConnection=Host=auction_portal_postgres;Database=auction_portal;Username=postgres;Password=ppp
+      - ConnectionStrings__Redis=auctionportal_redis:6379
     ports:
       - "8080:8080"
       - "8081:8081"

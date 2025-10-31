@@ -1,30 +1,16 @@
-﻿using AuctionPortal.Components.Layout;
-using AuctionPortal.Data;
-using AuctionPortal.Services;
-
-//using AuctionPortal.Services;
+﻿using AuctionPortal.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
 using StackExchange.Redis;
+using System.Configuration;
 using System.Security.Cryptography.X509Certificates;
 
 namespace AuctionPortal.Extensions;
 
-public static class ServicesExtensions
+public static class ServiceConfigurationExtensions
 {
-    public static void ConfigureDatabase(this IServiceCollection services, IConfiguration config)
-    {
-        var conn = config.GetConnectionString("DefaultConnection")
-                   ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
-        services.AddDbContext<AuctionDbContext>(options =>
-            options.UseNpgsql(conn), ServiceLifetime.Scoped);
-    }
-
     public static void ConfigureHttp(this IServiceCollection services)
     {
         services.AddHttpClient();
@@ -40,14 +26,14 @@ public static class ServicesExtensions
     public static void ConfigureAuctionServices(this IServiceCollection services)
     {
         services.AddScoped<IAuctionService, AuctionService>();
-        services.AddScoped<IProductService, ProductService>();;
+        services.AddScoped<IProductService, ProductService>();
     }
 
     public static void ConfigureFormOptions(this IServiceCollection services)
     {
         services.Configure<FormOptions>(options =>
         {
-            options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50 MB
+            options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50 MB upload limit
         });
     }
 
@@ -60,27 +46,26 @@ public static class ServicesExtensions
             .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
             .SetApplicationName("AuctionPortal");
 
+        // Load and protect keys with certificate (if available)
         if (File.Exists(certPath))
         {
-            // Load certificate safely using the new API
             var cert = X509CertificateLoader.LoadPkcs12FromFile(certPath, certPassword);
-
             dataProtectionBuilder.ProtectKeysWithCertificate(cert);
         }
     }
 
-    public static void ConfigureRedis(this IServiceCollection services, IConfiguration configuration)
+    public static void ConfigureRedis(this IServiceCollection services, IConfiguration config)
     {
         services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
-            string redisConnectionString = configuration.GetConnectionString("Redis") ?? throw new NullReferenceException("Redis connection string is not configured.");
-
+            string redisConnectionString = config.GetConnectionString("Redis")
+                ?? throw new NullReferenceException("Redis connection string is not configured.");
             return ConnectionMultiplexer.Connect(redisConnectionString);
         });
 
         services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = configuration.GetConnectionString("Redis");
+            options.Configuration = config.GetConnectionString("Redis");
             options.InstanceName = "AuctionPortal:";
         });
 
