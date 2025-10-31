@@ -1,5 +1,6 @@
 ﻿
 using AuctionPortal.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,4 +12,5 @@ public class AuctionDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<AuctionModel> Auctions { get; set; }
     public DbSet<ProductModel> Products { get; set; }
+
 }

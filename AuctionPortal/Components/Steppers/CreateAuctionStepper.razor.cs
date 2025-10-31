@@ -1,24 +1,50 @@
-﻿using AuctionPortal.Services;
+﻿using AuctionPortal.Components.Account;
+using AuctionPortal.Services;
 using AuctionPortal.ViewModels;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace AuctionPortal.Components.Steppers;
 
-public partial class CreateAuctionStepper : ComponentBase
+public partial class CreateAuctionStepper : ProtectedPageBase
 {
     [Inject] IAuctionService AuctionService { get; set; } = default!;
-    [Inject] NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] ISnackbar Snackbar { get; set; } = default!;
+    [Inject] protected new AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] new ISnackbar Snackbar { get; set; } = default!;
 
     private MudStepper stepper = default!;
     private AuctionViewModel auctionViewModel = new();
     private StepperValidator<AuctionViewModel> validator = default!;
 
-
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is { IsAuthenticated: true })
+        {
+            // Get the user's database ID from their claims
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                auctionViewModel.CreatorId = userId;
+            }
+            else
+            {
+                Console.Error.WriteLine("User ID claim not found.");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+            return;
+        }
+
         validator = new StepperValidator<AuctionViewModel>(auctionViewModel);
 
         // STEP 1
@@ -31,18 +57,36 @@ public partial class CreateAuctionStepper : ComponentBase
             "End time must be after the start time.");
     }
 
-    private void NavigateToAddProduct()
+    private async Task OnSaveDraftAndAddProducts()
+    {
+        try
+        {
+            // Mark the auction as a draft
+            auctionViewModel.IsDraft = true;
+
+            // Save draft
+            var draftAuction = await AuctionService.CreateAuctionAsync(auctionViewModel);
+
+            Snackbar.Add($"Draft auction '{draftAuction.Name}' saved.", Severity.Info);
+
+            // Redirect to add products with return URL and auction ID
+            var returnUrl = Uri.EscapeDataString(NavigationManager.Uri);
+            NavigationManager.NavigateTo($"/product/create?auctionId={draftAuction.Id}&return={returnUrl}");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to save draft: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task NavigateToAddProduct()
     {
         var redirectUrl = Uri.EscapeDataString(NavigationManager.Uri);
+        await OnCreateAuction();
         NavigationManager.NavigateTo($"/product/create?return={redirectUrl}?");
     }
 
-    private async Task CreateDraftAuctionAsync(string sessionId)
-    {
-
-    }
-
-    private async Task OnSubmitAuction()
+    private async Task OnCreateAuction()
     {
         try
         {
