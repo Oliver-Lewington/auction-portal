@@ -17,7 +17,7 @@
             <!-- Step 1: Images -->
             <MudStep Title="Step 1: Upload Images" SecondaryText="Add product images" HasError="validator.HasError(0)">
                 <MudStack Spacing="3">
-                    <ProductImageManager CarouselImages="carouselImages" />
+                    <ProductImageManager Images="images" />
                     @if (validator.HasError(0))
                     {
                         @foreach (var msg in validator.GetErrorMessages(0))

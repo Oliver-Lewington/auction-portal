@@ -22,5 +22,5 @@ public class ProductViewModel
     public string? FinalBidderName { get; set; }
     public bool Sold => FinalBid.HasValue;
 
-    public List<ImageInfoViewModel> Images { get; set; } = new();
+    public List<ImageViewModel> Images { get; set; } = new();
 }

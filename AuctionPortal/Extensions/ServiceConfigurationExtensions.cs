@@ -1,4 +1,5 @@
 ﻿using AuctionPortal.Services;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
@@ -70,6 +71,13 @@ public static class ServiceConfigurationExtensions
         });
 
         services.AddSingleton<SessionCacheService>();
+    }
+
+    public static void ConfigureAzureBlobService(this IServiceCollection services, IConfiguration config)
+    {
+        string connString = config.GetConnectionString("AzureBlobService");
+        services.AddSingleton(new BlobServiceClient(connString));
+        services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
     }
 
     public static void ConfigureSession(this IServiceCollection services)

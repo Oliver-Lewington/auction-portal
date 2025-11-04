@@ -1,5 +1,6 @@
 using AuctionPortal.Data;
 using AuctionPortal.Data.Seeding;
+using AuctionPortal.Endpoints;
 using AuctionPortal.Extensions;
 using AuctionPortal.Mapping;
 
@@ -11,15 +12,17 @@ builder.Services.AddRazorComponents()
 
 // Configure Services
 builder.Services.ConfigureDatabase(builder.Configuration);
-builder.Services.AddAutoMapper(cfg => { }, typeof(AuctionMappingProfile));
+builder.Services.AddAutoMapper(cfg => { }, typeof(AuctionMappingProfile), typeof(ProductMappingProfile));
 builder.Services.ConfigureAuthentication();
 builder.Services.ConfigureHttp();
 builder.Services.ConfigureMudBlazor();
 builder.Services.ConfigureAuctionServices();
 builder.Services.ConfigureFormOptions();
 builder.Services.ConfigureRedis(builder.Configuration);
+builder.Services.ConfigureAzureBlobService(builder.Configuration);
 builder.Services.ConfigureDataProtection("/app/keys", "/app/certs/dataprotection.pfx", "certPassword");
 builder.Services.AddHttpContextAccessor();
+
 
 // Configure Logging
 builder.Logging.ConfigureLogging();
@@ -27,7 +30,7 @@ builder.Logging.ConfigureLogging();
 // Build app
 var app = builder.Build();
 
-// Apply Migrations
+app.MapImagesEndpoints();
 app.ApplyDatabaseMigrations<AuctionDbContext>();
 
 await AdminUserSeeder.SeedAdminAsync(app.Services);

@@ -3,6 +3,7 @@ using AuctionPortal.Components.ImageCarousel;
 using AuctionPortal.Services;
 using AuctionPortal.ViewModels;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
 namespace AuctionPortal.Components.Steppers;
@@ -12,12 +13,13 @@ public partial class CreateProductStepper : ProtectedPageBase
     [Parameter] public Guid AuctionId { get; set; }
 
     [Inject] IProductService ProductService { get; set; } = default!;
+    [Inject] IBlobStorageService BlobStorageService { get; set; } = default!;
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] ISnackbar Snackbar { get; set; } = default!;
+    [Inject] new ISnackbar Snackbar { get; set; } = default!;
 
     private ProductViewModel product = default!;
     private MudStepper stepper = default!;
-    private List<ICarouselImage> carouselImages = new();
+    private readonly List<ICarouselImage> images = new ();
     private StepperValidator<ProductViewModel> validator = default!;
 
     private DateTime? ExpiryDateNullable
@@ -32,7 +34,7 @@ public partial class CreateProductStepper : ProtectedPageBase
         validator = new StepperValidator<ProductViewModel>(product);
 
         // STEP 1: At least one image
-        validator.AddRule(0, p => carouselImages != null && carouselImages.Any(), "Please upload at least one image.");
+        validator.AddRule(0, p => images != null && images.Any(), "Please upload at least one image.");
 
         // STEP 2: Product title required
         validator.AddRule(1, p => !string.IsNullOrWhiteSpace(p.Title), "Product name is required.");
@@ -46,16 +48,15 @@ public partial class CreateProductStepper : ProtectedPageBase
     {
         try
         {
+            product.Images.AddRange(images.Cast<ImageViewModel>());
             var savedProduct = await ProductService.AddAuctionProductAsync(product);
-
             NavigationManager.NavigateTo($"/{AuctionId}");
             Snackbar.Add($"Auction item '{savedProduct.Title}' saved successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            var activeStep = stepper.ActiveStep;
-
-            if(activeStep != null)
+            var activeStep = stepper?.ActiveStep;
+            if (activeStep != null)
             {
                 await activeStep.SetHasErrorAsync(true, true);
                 await activeStep.SetCompletedAsync(false, true);

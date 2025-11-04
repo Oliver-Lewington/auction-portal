@@ -1,10 +1,13 @@
 ﻿@using AuctionPortal.Components.ImageCarousel
 @using AuctionPortal.Data.Models
 @using AuctionPortal.Dialogs
+@using AuctionPortal.ViewModels
+@using AuctionPortal.Services
 @using MudBlazor
 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IBlobStorageService BlobStorageService
 
 <MudPaper Class="pa-6 rounded-lg elevation-3">
 
@@ -14,7 +17,7 @@
         <MudTooltip Text="Upload image(s)">
             <MudFileUpload T="IReadOnlyList<IBrowserFile>"
                            Accept=".png, .jpg, .jpeg"
-                           FilesChanged="UploadFiles"
+                           FilesChanged="StageFiles"
                            MaximumFileCount="100">
                 <ActivatorContent>
                     <MudIconButton Color="Color.Primary"
@@ -55,28 +58,29 @@
         <!-- Move Right -->
         <MudTooltip Text="Move Right">
             <MudIconButton Icon="@Icons.Material.Filled.ArrowForwardIos"
-                           Disabled="@(!_hasSelected || selectedIndex >= CarouselImages.Count - 1)"
+                           Disabled="@(!_hasSelected || selectedIndex >= Images.Count - 1)"
                            OnClick="MoveRight" />
         </MudTooltip>
     </MudToolBar>
 
     <!-- Image carousel -->
-    <ImageCarousel Images="CarouselImages"
+    <ImageCarousel Images="Images"
                    @bind-SelectedIndex="selectedIndex"
                    ZoomLevel="@zoomLevel" />
 
 </MudPaper>
 
 @code {
-    [Parameter] public List<ICarouselImage> CarouselImages { get; set; } = new();
-    private readonly ICollection<IBrowserFile> _files = new List<IBrowserFile>();
+    [Parameter] public List<ICarouselImage> Images { get; set; } = new();
+
 
     private int selectedIndex = 0;
     private double zoomLevel = 1.0;
 
-    private bool _hasSelected => selectedIndex >= 0 && selectedIndex < CarouselImages.Count;
+    private bool _hasSelected => selectedIndex >= 0 && selectedIndex < Images.Count;
 
-    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
+    // Stage files in memory
+    private async Task StageFiles(IReadOnlyList<IBrowserFile> files)
     {
         foreach (var file in files)
         {
@@ -88,29 +92,21 @@
 
             try
             {
-                using var stream = file.OpenReadStream(maxAllowedSize: 10_000_000);
-                using var ms = new MemoryStream();
-                await stream.CopyToAsync(ms);
-                var base64 = Convert.ToBase64String(ms.ToArray());
-                var imageUrl = $"data:{file.ContentType};base64,{base64}";
+                // Upload immediately to Blob storage
+                var image = await BlobStorageService.UploadAsync(file);
 
-                //ICarouselImage image = new ProductImageModel(imageUrl);
+                Images.Add(image);
 
-                //CarouselImages.Add(image);
+                Snackbar.Add($"Uploaded {file.Name} successfully", Severity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error uploading {file.Name}: {ex.Message}", Severity.Error);
+                Snackbar.Add($"Failed to upload {file.Name}: {ex.Message}", Severity.Error);
             }
         }
 
-        Snackbar.Add($"{files.Count} image(s) uploaded.", Severity.Success);
-
-        // Automatically select the first image if none is selected
-        if (!_hasSelected && CarouselImages.Count > 0)
+        if (!_hasSelected && Images.Count > 0)
             selectedIndex = 0;
-
-        StateHasChanged();
     }
 
     private async Task DeleteSelectedImage()
@@ -138,13 +134,13 @@
         if (result is not null && result.Canceled)
             return;
 
-        CarouselImages.RemoveAt(selectedIndex);
+        Images.RemoveAt(selectedIndex);
         Snackbar.Add("Image deleted.", Severity.Error);
 
-        if (CarouselImages.Count == 0)
+        if (Images.Count == 0)
             selectedIndex = -1;
         else
-            selectedIndex = Math.Min(selectedIndex, CarouselImages.Count - 1);
+            selectedIndex = Math.Min(selectedIndex, Images.Count - 1);
 
         StateHasChanged();
     }
@@ -157,19 +153,19 @@
     {
         if (!_hasSelected || selectedIndex == 0) return;
 
-        var temp = CarouselImages[selectedIndex];
-        CarouselImages[selectedIndex] = CarouselImages[selectedIndex - 1];
-        CarouselImages[selectedIndex - 1] = temp;
+        var temp = Images[selectedIndex];
+        Images[selectedIndex] = Images[selectedIndex - 1];
+        Images[selectedIndex - 1] = temp;
         selectedIndex--;
     }
 
     private void MoveRight()
     {
-        if (!_hasSelected || selectedIndex >= CarouselImages.Count - 1) return;
+        if (!_hasSelected || selectedIndex >= Images.Count - 1) return;
 
-        var temp = CarouselImages[selectedIndex];
-        CarouselImages[selectedIndex] = CarouselImages[selectedIndex + 1];
-        CarouselImages[selectedIndex + 1] = temp;
+        var temp = Images[selectedIndex];
+        Images[selectedIndex] = Images[selectedIndex + 1];
+        Images[selectedIndex + 1] = temp;
         selectedIndex++;
     }
 }

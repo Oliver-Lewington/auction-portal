@@ -19,9 +19,10 @@
             </MudMenuItem>
             <form action="Account/Logout" method="post">
                 <AntiforgeryToken />
-                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                <input type="hidden" name="ReturnUrl" value="/" />
                 <button type="submit" class="mud-nav-link mud-ripple">
-                    <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon>
+                    Logout
                 </button>
             </form>
         </ChildContent>

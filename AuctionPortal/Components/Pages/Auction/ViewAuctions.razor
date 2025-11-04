@@ -4,6 +4,7 @@
 @using AuctionPortal.Services
 @using AuctionPortal.Data.Models
 @using AuctionPortal.ViewModels
+@using Microsoft.AspNetCore.Components.Authorization
 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -18,26 +19,25 @@
                 <MudText Typo="Typo.body1">Manage all auctions in your system</MudText>
             </MudStack>
         </MudItem>
-        <AuthorizeView Roles="AuctionAdmin">
+
+        <!-- ✅ Create button only visible to AuctionAdmin or SiteAdmin -->
+        <AuthorizeView Roles="AuctionAdmin,SiteAdmin">
             <Authorized>
                 @if (auctionViewModels.Any())
                 {
                     <MudItem>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="CreateAuction">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Outlined.Add"
+                                   OnClick="CreateAuction">
                             Create Auction
                         </MudButton>
                     </MudItem>
                 }
             </Authorized>
-            <NotAuthorized>
-                <MudItem>
-                    <MudText Typo="Typo.subtitle1">You do not have permission to see the admin button.</MudText>
-                </MudItem>
-            </NotAuthorized>
         </AuthorizeView>
     </MudGrid>
 
-    @if (auctionViewModels == null || auctionViewModels.Count() == 0)
+    @if (auctionViewModels == null || !auctionViewModels.Any())
     {
         <MudPaper Class="pa-6" Elevation="2">
             <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
@@ -45,26 +45,34 @@
             <MudText Typo="Typo.body2" Class="mb-4">
                 Start creating auctions now to see them listed here.
             </MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="@CreateAuction">
-                Create Auction
-            </MudButton>
+
+            <!-- ✅ Hide Create Auction button unless admin -->
+            <AuthorizeView Roles="AuctionAdmin,SiteAdmin">
+                <Authorized>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Outlined.Add"
+                               OnClick="CreateAuction">
+                        Create Auction
+                    </MudButton>
+                </Authorized>
+            </AuthorizeView>
         </MudPaper>
     }
-    else {
-        @* Row 2 *@
+    else
+    {
+        <!-- Filters -->
         <MudPaper Class="pa-4">
             <MudGrid Spacing="2">
-                <!-- Search Input -->
                 <MudItem xs="12" sm="6" lg="6">
                     <MudText Typo="Typo.body2">Search</MudText>
                     <MudTextField @bind-Value="_searchText"
-                                    Placeholder="Search auctions..."
-                                    Adornment="Adornment.Start"
-                                    AdornmentIcon="@Icons.Material.Outlined.Search"
-                                    Class="w-full"
-                                    Variant="Variant.Outlined"
-                                    Margin="Margin.Dense"
-                                    Immediate="true" />
+                                  Placeholder="Search auctions..."
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Outlined.Search"
+                                  Class="w-full"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Immediate="true" />
                 </MudItem>
 
                 <!-- Status Select -->
@@ -91,31 +99,29 @@
             </MudGrid>
         </MudPaper>
 
-        @* Row 3 *@
+        <!-- Auction cards -->
         <MudGrid>
             @foreach (AuctionViewModel auctionViewModel in auctionViewModels)
             {
                 <MudItem xs="12" sm="6" md="6" lg="4" xl="4">
                     <MudCard>
-                        <!-- Image with LIVE badge -->
-                        <MudCardMedia Image="https://placehold.co/600x400" Height="225"/>
+                        <MudCardMedia Image="https://placehold.co/600x400" Height="225" />
 
                         @if (auctionViewModel.LiveFlag)
                         {
                             <div class="ma-2" style="position: absolute;">
                                 <MudChip T="string" Color="Color.Error"
-                                            Size="Size.Small"
-                                            Class="live-badge">
+                                         Size="Size.Small"
+                                         Class="live-badge">
                                     <b>LIVE</b>
                                 </MudChip>
                             </div>
                         }
 
-                        <!-- Card Content -->
                         <MudCardContent Class="p-4">
                             <MudStack Row Justify="Justify.SpaceBetween" Class="mb-2">
                                 <MudText Typo="Typo.h5">@auctionViewModel.Name</MudText>
-                                <MudChip T="string" Label=true Size="Size.Small" Class="text-secondary">
+                                <MudChip T="string" Label="true" Size="Size.Small" Class="text-secondary">
                                     @($"{auctionViewModel.Products.Count} product{(auctionViewModel.Products.Count == 1 ? "" : "s")}")
                                 </MudChip>
                             </MudStack>
@@ -134,15 +140,27 @@
                                     <MudText Typo="Typo.h6">@auctionViewModel.BeginsAt.ToString("MMM dd, yyyy")</MudText>
                                 </MudItem>
                             </MudGrid>
+
                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                                <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility" OnClick="() => ViewAuction(auctionViewModel.Id)" >
+                                <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Outlined.Visibility"
+                                           OnClick="() => ViewAuction(auctionViewModel.Id)">
                                     View Details
                                 </MudButton>
 
-                                <MudStack Row Spacing="1">
-                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="() => EditAuction(auctionViewModel.Id)" />
-                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="() => DeleteAuction(auctionViewModel.Id)" />
-                                </MudStack>
+                                <!-- ✅ Edit/Delete only for admins -->
+                                <AuthorizeView Roles="AuctionAdmin,SiteAdmin">
+                                    <Authorized>
+                                        <MudStack Row Spacing="1">
+                                            <MudIconButton Size="Size.Small"
+                                                           Icon="@Icons.Material.Outlined.Edit"
+                                                           OnClick="() => EditAuction(auctionViewModel.Id)" />
+                                            <MudIconButton Size="Size.Small"
+                                                           Icon="@Icons.Material.Outlined.Delete"
+                                                           OnClick="() => DeleteAuction(auctionViewModel.Id)" />
+                                        </MudStack>
+                                    </Authorized>
+                                </AuthorizeView>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
@@ -167,7 +185,7 @@
     private void ViewAuction(Guid auctionId) => NavigationManager.NavigateTo($"/{auctionId}");
     private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/edit/{auctionId}");
 
-    private async Task DeleteAuction(Guid  id)
+    private async Task DeleteAuction(Guid id)
     {
         await AuctionDialogs.ConfirmAndDeleteEntity(
             id,

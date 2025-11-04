@@ -16,13 +16,5 @@ public class AuctionMappingProfile : Profile
 
         CreateMap<AuctionModel, AuctionViewModel>()
             .ForMember(dest => dest.CreatorId, opt => opt.MapFrom(src => src.Creator.Id));
-
-        CreateMap<ProductModel, ProductViewModel>()
-            .ForMember(dest => dest.Sold, opt => opt.MapFrom(src => src.FinalBid.HasValue))
-            .ReverseMap()
-            .ForMember(dest => dest.FinalBid, opt => opt.Ignore());
-
-
-        //CreateMap<ProductImageModel, ImageInfoViewModel>().ReverseMap();
     }
 }

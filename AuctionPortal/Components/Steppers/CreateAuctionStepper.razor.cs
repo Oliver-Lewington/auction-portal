@@ -5,16 +5,15 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace AuctionPortal.Components.Steppers;
 
 public partial class CreateAuctionStepper : ProtectedPageBase
 {
+    [Inject] new ISnackbar Snackbar { get; set; } = default!;
     [Inject] IAuctionService AuctionService { get; set; } = default!;
     [Inject] protected new AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] new ISnackbar Snackbar { get; set; } = default!;
 
     private MudStepper stepper = default!;
     private AuctionViewModel auctionViewModel = new();
@@ -22,39 +21,46 @@ public partial class CreateAuctionStepper : ProtectedPageBase
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity is { IsAuthenticated: true })
+        try
         {
-            // Get the user's database ID from their claims
-            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
 
-            if (!string.IsNullOrEmpty(userId))
+            if (user.Identity is { IsAuthenticated: true })
             {
-                auctionViewModel.CreatorId = userId;
+                // Get the user's database ID from their claims
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    auctionViewModel.CreatorId = userId;
+                }
+                else
+                {
+                    Console.Error.WriteLine("User ID claim not found.");
+                }
             }
             else
             {
-                Console.Error.WriteLine("User ID claim not found.");
+                //NavigationManager.NavigateTo("Account/Login", true);
             }
+
+            validator = new StepperValidator<AuctionViewModel>(auctionViewModel);
+
+            // STEP 1
+            validator.AddRule(0, a => !string.IsNullOrWhiteSpace(a.Name), "Name is required.");
+
+            // STEP 2
+            validator.AddRule(1, a => a.BeginsAt.Date >= DateTime.Today.AddDays(1),
+                "Auction must start on or after tomorrow.");
+            validator.AddRule(1, a => a.EndsAt > a.BeginsAt,
+                "End time must be after the start time.");
         }
-        else
+        catch(Exception ex)
         {
-            NavigationManager.NavigateTo("Account/Login");
-            return;
+            Console.Error.WriteLine("User ID claim not found.");
         }
 
-        validator = new StepperValidator<AuctionViewModel>(auctionViewModel);
-
-        // STEP 1
-        validator.AddRule(0, a => !string.IsNullOrWhiteSpace(a.Name), "Name is required.");
-
-        // STEP 2
-        validator.AddRule(1, a => a.BeginsAt.Date >= DateTime.Today.AddDays(1),
-            "Auction must start on or after tomorrow.");
-        validator.AddRule(1, a => a.EndsAt > a.BeginsAt,
-            "End time must be after the start time.");
     }
 
     private async Task OnSaveDraftAndAddProducts()
