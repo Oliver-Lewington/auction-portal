@@ -105,7 +105,7 @@
             {
                 <MudItem xs="12" sm="6" md="6" lg="4" xl="4">
                     <MudCard>
-                        <MudCardMedia Image="https://placehold.co/600x400" Height="225" />
+                        <MudCardMedia Image="@auctionViewModel.Image.Uri?.AbsolutePath" />
 
                         @if (auctionViewModel.LiveFlag)
                         {

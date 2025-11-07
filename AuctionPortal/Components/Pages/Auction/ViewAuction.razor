@@ -18,11 +18,9 @@
 
     <!-- Left: Auction Image -->
     <MudItem sm="12" lg="6" Class="d-flex justify-end align-center">
-        <MudImage Src="@_placeholderImage"
-                  Fluid="true"
-                  ObjectFit="ObjectFit.Cover"
+        <MudImage Src="@auctionViewModel?.Image?.Url"
+                  FallbackSrc="https://placehold.co/600x400"
                   Width="375"
-                  Alt="Auction Image"
                   Elevation="25"
                   Class="rounded-lg my-4" />
     </MudItem>
@@ -97,13 +95,13 @@
     [Parameter] public Guid Id { get; set; }
 
     private AuctionViewModel auctionViewModel = new();
-    private readonly string _placeholderImage = "https://placehold.co/600x400";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             auctionViewModel = await AuctionService.GetAuctionByIdAsync(Id);
+            
         }
         catch (Exception ex)
         {
