@@ -75,8 +75,10 @@ public static class ServiceConfigurationExtensions
 
     public static void ConfigureAzureBlobService(this IServiceCollection services, IConfiguration config)
     {
-        string connString = config.GetConnectionString("AzureBlobService");
-        services.AddSingleton(new BlobServiceClient(connString));
+        string azureStorageConnectionString = config.GetConnectionString("AzureStorage")
+            ?? throw new NullReferenceException("Azure Storage connection string is not configured.");
+
+        services.AddSingleton(new BlobServiceClient(azureStorageConnectionString));
         services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
     }
 

@@ -10,6 +10,8 @@ public class AuctionDbContext : IdentityDbContext<ApplicationUser>
     public AuctionDbContext(DbContextOptions<AuctionDbContext> options) : base(options) { }
 
     public DbSet<AuctionModel> Auctions { get; set; }
+    public DbSet<AuctionImageModel> AuctionImages { get; set; }
+
     public DbSet<ProductModel> Products { get; set; }
-    public DbSet<ImageModel> Images { get; set; }
+    public DbSet<ProductImageModel> ProductImages { get; set; }
 }

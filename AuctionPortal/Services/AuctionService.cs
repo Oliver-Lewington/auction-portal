@@ -17,7 +17,6 @@ public class AuctionService : IAuctionService
         _dbContext = dbContext;
     }
 
-
     public async Task<AuctionViewModel> CreateAuctionAsync(AuctionViewModel viewModel, CancellationToken cancellationToken = default)
     {
         // Ensure the creator exists in the DB
@@ -48,7 +47,9 @@ public class AuctionService : IAuctionService
     public async Task<IEnumerable<AuctionViewModel>> GetAuctionsAsync(CancellationToken cancellationToken = default)
     {
         var auctionModels = await _dbContext.Auctions
+                            .Include(a => a.Image)
                             .Include(a => a.Products)
+                                .ThenInclude(p => p.Images)
                             .AsNoTracking().OrderBy(a => a.EndsAt)
                             .ToListAsync(cancellationToken);
 
@@ -59,7 +60,9 @@ public class AuctionService : IAuctionService
     public async Task<AuctionViewModel> GetAuctionByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var auctionModel = await _dbContext.Auctions
+                           .Include(a => a.Image)
                            .Include(a => a.Products)
+                                .ThenInclude(p => p.Images)
                            .AsNoTracking().OrderBy(a => a.EndsAt)
                             .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 

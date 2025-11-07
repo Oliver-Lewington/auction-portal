@@ -18,8 +18,8 @@ builder.Services.ConfigureHttp();
 builder.Services.ConfigureMudBlazor();
 builder.Services.ConfigureAuctionServices();
 builder.Services.ConfigureFormOptions();
-builder.Services.ConfigureRedis(builder.Configuration);
 builder.Services.ConfigureAzureBlobService(builder.Configuration);
+builder.Services.ConfigureRedis(builder.Configuration);
 builder.Services.ConfigureDataProtection("/app/keys", "/app/certs/dataprotection.pfx", "certPassword");
 builder.Services.AddHttpContextAccessor();
 

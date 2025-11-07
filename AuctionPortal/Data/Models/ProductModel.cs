@@ -23,4 +23,6 @@ public class ProductModel
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+    public List<ProductImageModel> Images { get; set; } = new();
 }

@@ -3,6 +3,7 @@ using System;
 using AuctionPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuctionPortal.Data.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
-    partial class AuctionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251104140951_UpdateProductsTable")]
+    partial class UpdateProductsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,24 +99,6 @@ namespace AuctionPortal.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionImage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Alt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AuctionImages");
-                });
-
             modelBuilder.Entity("AuctionPortal.Data.Models.AuctionModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -135,9 +120,6 @@ namespace AuctionPortal.Data.Migrations
                     b.Property<DateTime>("EndsAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<Guid>("ImageId")
-                        .HasColumnType("uuid");
-
                     b.Property<bool>("LiveFlag")
                         .HasColumnType("boolean");
 
@@ -152,12 +134,10 @@ namespace AuctionPortal.Data.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.HasIndex("ImageId");
-
                     b.ToTable("Auctions");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImage", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.ImageModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -180,7 +160,7 @@ namespace AuctionPortal.Data.Migrations
 
                     b.HasIndex("ProductModelId");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("AuctionPortal.Data.Models.ProductModel", b =>
@@ -365,18 +345,10 @@ namespace AuctionPortal.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CreatorId");
 
-                    b.HasOne("AuctionPortal.Data.Models.AuctionImage", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Creator");
-
-                    b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImage", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.ImageModel", b =>
                 {
                     b.HasOne("AuctionPortal.Data.Models.ProductModel", null)
                         .WithMany("Images")

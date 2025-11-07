@@ -1,4 +1,5 @@
-﻿using AuctionPortal.Data.Models;
+﻿using AuctionPortal.Components.ImageViewer;
+using AuctionPortal.Data.Models;
 
 namespace AuctionPortal.ViewModels;
 
@@ -6,6 +7,7 @@ public class AuctionViewModel
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public ImageViewModel Image { get; set; } = default!;
     public string? Description { get; set; }
     public string CreatorId { get; set; } = null!;
     public bool LiveFlag { get; set; }
