@@ -10,6 +10,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ConnectionStrings__DefaultConnection=Host=auction_portal_postgres;Database=auction_portal;Username=postgres;Password=ppp
       - ConnectionStrings__Redis=auctionportal_redis:6379
+      - ConnectionStrings__AzureStorage=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://auction-portal-azurite:10000/devstoreaccount1;
     ports:
       - "8080:8080"
       - "8081:8081"
