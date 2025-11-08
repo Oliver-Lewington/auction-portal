@@ -1,68 +1,47 @@
-﻿using AuctionPortal.Components.Account;
-using AuctionPortal.Components.ImageCarousel;
+﻿using AuctionPortal.Components.Steppers.Validation;
 using AuctionPortal.Services;
 using AuctionPortal.ViewModels;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
 namespace AuctionPortal.Components.Steppers;
 
-public partial class CreateProductStepper : ProtectedPageBase
+public partial class CreateProductStepper : StepperComponentBase<ProductViewModel>
 {
     [Parameter] public Guid AuctionId { get; set; }
 
     [Inject] IProductService ProductService { get; set; } = default!;
-    [Inject] IBlobStorageService BlobStorageService { get; set; } = default!;
-    [Inject] NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] new ISnackbar Snackbar { get; set; } = default!;
-
-    private ProductViewModel product = default!;
-    private MudStepper stepper = default!;
-    private readonly List<ICarouselImage> images = new ();
-    private StepperValidator<ProductViewModel> validator = default!;
 
     private DateTime? ExpiryDateNullable
     {
-        get => product.ExpiryDate != default ? product.ExpiryDate : null;
-        set => product.ExpiryDate = value ?? default;
+        get => ViewModel.ExpiryDate != default ? ViewModel.ExpiryDate : null;
+        set => ViewModel.ExpiryDate = value ?? default;
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        product = new ProductViewModel(AuctionId);
-        validator = new StepperValidator<ProductViewModel>(product);
+        await base.OnInitializedAsync();
 
-        // STEP 1: At least one image
-        validator.AddRule(0, p => images != null && images.Any(), "Please upload at least one image.");
+        InitializeViewModel(() => new ProductViewModel(AuctionId));
 
-        // STEP 2: Product title required
-        validator.AddRule(1, p => !string.IsNullOrWhiteSpace(p.Title), "Product name is required.");
-
-        // STEP 3: Pricing and expiry
-        validator.AddRule(2, p => p.StartingPrice > 0, "Starting price must be greater than 0.");
-        validator.AddRule(2, p => p.ExpiryDate == default || p.ExpiryDate > DateTime.Now, "Expiry date must be in the future.");
+        AddValidation(ValidationRules.GetProductValidationRules());
     }
 
-    private async Task OnSubmitProduct()
+    protected async Task OnCompletedChanged(bool completed)
     {
+        if (!completed)
+            return;
+
         try
         {
-            product.Images.AddRange(images.Cast<ImageViewModel>());
-            var savedProduct = await ProductService.AddAuctionProductAsync(product);
+            var result = await ProductService.AddAuctionProductAsync(ViewModel);
+
+            Snackbar.Add($"Auction item '{result.Title}' saved successfully!", Severity.Success);
             NavigationManager.NavigateTo($"/{AuctionId}");
-            Snackbar.Add($"Auction item '{savedProduct.Title}' saved successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            var activeStep = stepper?.ActiveStep;
-            if (activeStep != null)
-            {
-                await activeStep.SetHasErrorAsync(true, true);
-                await activeStep.SetCompletedAsync(false, true);
-            }
-
-            Snackbar.Add($"Failed to save auction item: {ex.Message}", Severity.Error);
+            await HandleSubmitErrorAsync(ex, "creating product");
         }
     }
 }

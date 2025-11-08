@@ -1,0 +1,104 @@
+﻿@typeparam TImage where TImage : class, ICarouselImage 
+
+@using AuctionPortal.Components.ImageUpload.Shared
+@using AuctionPortal.Components.ImageViewer
+@using AuctionPortal.Data.Models
+@using AuctionPortal.ViewModels
+@using MudBlazor
+@using AuctionPortal.Dialogs
+@using AuctionPortal.Services
+
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IBlobStorageService BlobStorageService
+
+<MudPaper Class="pa-6 rounded-lg elevation-3">
+
+    <!-- Toolbar -->
+    <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
+
+        <!-- Upload -->
+        <MudTooltip Text="Upload image">
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                           Accept=".png, .jpg, .jpeg"
+                           FilesChanged="UploadFiles"
+                           MaximumFileCount="1">
+                <ActivatorContent>
+                    <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.CloudUpload" />
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudTooltip>
+
+        <!-- Delete -->
+        <MudTooltip Text="Delete selected image">
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                           Color="Color.Error"
+                           Disabled="@(!_hasImage)"
+                           OnClick="DeleteImage" />
+        </MudTooltip>
+
+        <!-- Zoom In / Zoom Out -->
+        <MudTooltip Text="Zoom In">
+            <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"
+                           Disabled="@(!_hasImage)"
+                           OnClick="ZoomIn" />
+        </MudTooltip>
+        <MudTooltip Text="Zoom Out">
+            <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"
+                           Disabled="@(!_hasImage || zoomLevel <= 1.0)"
+                           OnClick="ZoomOut" />
+        </MudTooltip>
+
+    </MudToolBar>
+
+    <!-- Image carousel (single-image mode) -->
+    <ImageCarousel Image="Image"
+                   ZoomLevel="@zoomLevel" />
+
+</MudPaper>
+
+@code {
+    [Parameter] public TImage? Image { get; set; }
+    [Parameter] public EventCallback<TImage?> ImageChanged { get; set; }
+
+    private double zoomLevel = 1.0;
+    private bool _hasImage => Image != null;
+
+    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        if (files.Count == 0) return;
+
+        var file = files[0];
+
+        if (!file.ContentType.StartsWith("image/"))
+        {
+            Snackbar.Add($"{file.Name} is not an image.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var image = await BlobStorageService.UploadAsync(file);
+            Image = image as TImage ?? throw new InvalidCastException();
+            await ImageChanged.InvokeAsync(Image);
+            Snackbar.Add($"Uploaded {file.Name} successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to upload {file.Name}: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteImage()
+    {
+        if (!_hasImage) return;
+
+        await ConfirmDialog.Generate(Snackbar, DialogService, async () => {
+            Image = default;
+            await ImageChanged.InvokeAsync(Image);
+        });
+    }
+
+    private void ZoomIn() => zoomLevel = Math.Min(zoomLevel + 0.1, 2.0);
+    private void ZoomOut() => zoomLevel = Math.Max(zoomLevel - 0.1, 0.5);
+}

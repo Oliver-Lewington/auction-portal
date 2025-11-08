@@ -1,10 +1,11 @@
-version: '3.9'
+﻿version: '3.9'
 
 services:
   auction-portal:
     depends_on:
       - auction_portal_postgres
       - auctionportal_redis
+      - auction-portal-azurite
     build:
       context: .
       target: production
@@ -57,16 +58,17 @@ services:
 
   auction-portal-azurite:
     image: mcr.microsoft.com/azure-storage/azurite
+    container_name: auction-portal-azurite
     restart: unless-stopped
     ports:
       - "10000:10000"
       - "10001:10001"
       - "10002:10002"
     volumes:
-      - azurite_data:/data
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+      - azurite_data:/workspace
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /workspace --debug /workspace/debug.log
 
 volumes:
   pgdata:
   redis_data:
-  azurite_data:  
+  azurite_data:

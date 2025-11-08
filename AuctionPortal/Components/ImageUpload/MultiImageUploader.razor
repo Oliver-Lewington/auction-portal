@@ -1,9 +1,12 @@
-﻿@using AuctionPortal.Components.ImageCarousel
+﻿@typeparam TImage where TImage : class, ICarouselImage
+
+@using AuctionPortal.Components.ImageUpload.Shared
+@using AuctionPortal.Components.ImageViewer
 @using AuctionPortal.Data.Models
-@using AuctionPortal.Dialogs
 @using AuctionPortal.ViewModels
-@using AuctionPortal.Services
 @using MudBlazor
+@using AuctionPortal.Dialogs
+@using AuctionPortal.Services
 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -13,15 +16,15 @@
 
     <!-- Toolbar -->
     <MudToolBar Dense="true" WrapContent="true" Class="justify-space-between">
+
         <!-- Upload -->
         <MudTooltip Text="Upload image(s)">
             <MudFileUpload T="IReadOnlyList<IBrowserFile>"
                            Accept=".png, .jpg, .jpeg"
-                           FilesChanged="StageFiles"
+                           FilesChanged="UploadFiles"
                            MaximumFileCount="100">
                 <ActivatorContent>
-                    <MudIconButton Color="Color.Primary"
-                                   Icon="@Icons.Material.Filled.CloudUpload" />
+                    <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.CloudUpload" />
                 </ActivatorContent>
             </MudFileUpload>
         </MudTooltip>
@@ -34,33 +37,31 @@
                            OnClick="DeleteSelectedImage" />
         </MudTooltip>
 
-        <!-- Zoom In -->
+        <!-- Zoom In / Zoom Out -->
         <MudTooltip Text="Zoom In">
             <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"
                            Disabled="@(!_hasSelected)"
                            OnClick="ZoomIn" />
         </MudTooltip>
-
-        <!-- Zoom Out -->
         <MudTooltip Text="Zoom Out">
             <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"
                            Disabled="@(!_hasSelected || zoomLevel <= 1.0)"
                            OnClick="ZoomOut" />
         </MudTooltip>
 
-        <!-- Move Left -->
-        <MudTooltip Text="Move Left">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIos"
-                           Disabled="@(!_hasSelected || selectedIndex == 0)"
-                           OnClick="MoveLeft" />
-        </MudTooltip>
-
-        <!-- Move Right -->
-        <MudTooltip Text="Move Right">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowForwardIos"
-                           Disabled="@(!_hasSelected || selectedIndex >= Images.Count - 1)"
-                           OnClick="MoveRight" />
-        </MudTooltip>
+        @if (AllowMultiple)
+        {
+            <MudTooltip Text="Move Left">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIos"
+                               Disabled="@(!_hasSelected || selectedIndex == 0)"
+                               OnClick="MoveLeft" />
+            </MudTooltip>
+            <MudTooltip Text="Move Right">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowForwardIos"
+                               Disabled="@(!_hasSelected || selectedIndex >= Images.Count - 1)"
+                               OnClick="MoveRight" />
+            </MudTooltip>
+        }
     </MudToolBar>
 
     <!-- Image carousel -->
@@ -71,16 +72,16 @@
 </MudPaper>
 
 @code {
-    [Parameter] public List<ICarouselImage> Images { get; set; } = new();
-
+    [Parameter] public List<TImage> Images { get; set; } = new();
+    [Parameter] public EventCallback<List<TImage>> ImagesChanged { get; set; }
+    [Parameter] public bool AllowMultiple { get; set; } = true;
 
     private int selectedIndex = 0;
     private double zoomLevel = 1.0;
-
     private bool _hasSelected => selectedIndex >= 0 && selectedIndex < Images.Count;
+    public TImage? SelectedImage => _hasSelected ? Images[selectedIndex] : null;
 
-    // Stage files in memory
-    private async Task StageFiles(IReadOnlyList<IBrowserFile> files)
+    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
     {
         foreach (var file in files)
         {
@@ -92,11 +93,18 @@
 
             try
             {
-                // Upload immediately to Blob storage
-                var image = await BlobStorageService.UploadAsync(file);
+                var uploaded = await BlobStorageService.UploadAsync(file) as TImage
+                               ?? throw new InvalidCastException("Uploaded file could not be converted to the expected image type.");
 
-                Images.Add(image);
+                if (!AllowMultiple)
+                {
+                    Images.Clear();
+                    Images.Add(uploaded);
+                    selectedIndex = 0;
+                    break;
+                }
 
+                Images.Add(uploaded);
                 Snackbar.Add($"Uploaded {file.Name} successfully", Severity.Success);
             }
             catch (Exception ex)
@@ -107,12 +115,13 @@
 
         if (!_hasSelected && Images.Count > 0)
             selectedIndex = 0;
+
+        await ImagesChanged.InvokeAsync(Images);
     }
 
     private async Task DeleteSelectedImage()
     {
-        if (!_hasSelected)
-            return;
+        if (!_hasSelected) return;
 
         var parameters = new DialogParameters<DeleteDialog>
         {
@@ -121,13 +130,7 @@
             { dl => dl.Color, Color.Error }
         };
 
-        var options = new DialogOptions
-        {
-            CloseButton = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            FullWidth = true
-        };
-
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
         var dialog = await DialogService.ShowAsync<DeleteDialog>("Confirm Delete", parameters, options);
         var result = await dialog.Result;
 
@@ -137,35 +140,24 @@
         Images.RemoveAt(selectedIndex);
         Snackbar.Add("Image deleted.", Severity.Error);
 
-        if (Images.Count == 0)
-            selectedIndex = -1;
-        else
-            selectedIndex = Math.Min(selectedIndex, Images.Count - 1);
+        selectedIndex = Images.Count > 0 ? Math.Min(selectedIndex, Images.Count - 1) : -1;
 
         StateHasChanged();
+        await ImagesChanged.InvokeAsync(Images);
     }
-
 
     private void ZoomIn() => zoomLevel = Math.Min(zoomLevel + 0.1, 2.0);
     private void ZoomOut() => zoomLevel = Math.Max(zoomLevel - 0.1, 0.5);
-
     private void MoveLeft()
     {
         if (!_hasSelected || selectedIndex == 0) return;
-
-        var temp = Images[selectedIndex];
-        Images[selectedIndex] = Images[selectedIndex - 1];
-        Images[selectedIndex - 1] = temp;
+        (Images[selectedIndex - 1], Images[selectedIndex]) = (Images[selectedIndex], Images[selectedIndex - 1]);
         selectedIndex--;
     }
-
     private void MoveRight()
     {
         if (!_hasSelected || selectedIndex >= Images.Count - 1) return;
-
-        var temp = Images[selectedIndex];
-        Images[selectedIndex] = Images[selectedIndex + 1];
-        Images[selectedIndex + 1] = temp;
+        (Images[selectedIndex + 1], Images[selectedIndex]) = (Images[selectedIndex], Images[selectedIndex + 1]);
         selectedIndex++;
     }
 }

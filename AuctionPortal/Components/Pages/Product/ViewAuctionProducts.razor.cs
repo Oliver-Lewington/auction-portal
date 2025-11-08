@@ -36,7 +36,7 @@ public partial class ViewAuctionProducts : ComponentBase
 
     }
 
-    private async Task DeleteProduct(ProductViewModel productViewModel) => await AuctionDialogs.ConfirmAndDeleteEntity(
+    private async Task DeleteProduct(ProductViewModel productViewModel) => await ConfirmAndDeleteDialog.Generate(
             productViewModel.Id,
             ProductService,
             DialogService,

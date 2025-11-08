@@ -157,7 +157,7 @@ namespace AuctionPortal.Data.Migrations
                     b.ToTable("Auctions");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImage", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.ProducICarouselImage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -376,7 +376,7 @@ namespace AuctionPortal.Data.Migrations
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImage", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.ProducICarouselImage", b =>
                 {
                     b.HasOne("AuctionPortal.Data.Models.ProductModel", null)
                         .WithMany("Images")

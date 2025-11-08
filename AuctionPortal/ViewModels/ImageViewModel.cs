@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace AuctionPortal.ViewModels;
 
-public class ImageViewModel : CarouselImage
+public class ImageViewModel : ICarouselImage
 {
     public ImageViewModel() { }
 
@@ -13,6 +13,10 @@ public class ImageViewModel : CarouselImage
         Uri = BuildUri(url, navigationManager);
     }
 
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Url { get; set; } = string.Empty;
+    public string? Alt { get; set; }
+    public string? Caption { get; set; }
     public Uri? Uri { get; set; }
 
     private static Uri? BuildUri(string? url, NavigationManager? navigationManager)

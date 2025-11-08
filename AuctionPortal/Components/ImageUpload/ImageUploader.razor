@@ -1,0 +1,110 @@
+﻿@using AuctionPortal.Components.ImageUpload.Shared
+@using AuctionPortal.Components.ImageViewer
+@using AuctionPortal.Data.Models
+@using AuctionPortal.Dialogs
+@using AuctionPortal.Services
+@using MudBlazor
+
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IBlobStorageService BlobStorageService
+
+<MudPaper Class="pa-6 rounded-lg elevation-3">
+
+    @* <ImageToolbar @bind-ZoomLevel="@zoomLevel" /> *@
+
+    <!-- Image carousel -->
+    <ImageCarousel Images="Images"
+                   @bind-SelectedIndex="selectedIndex"
+                   ZoomLevel="@zoomLevel" />
+
+</MudPaper>
+
+@code {
+    [Parameter] public IList<ICarouselImage> Images { get; set; } = new List<ICarouselImage>();
+    [Parameter] public EventCallback<IList<ICarouselImage>> OnImagesChanged { get; set; }
+    [Parameter] public bool AllowMultiple { get; set; } = true;
+
+    private int selectedIndex = 0;
+    private double zoomLevel = 1.0;
+    private bool _hasSelected => selectedIndex >= 0 && selectedIndex < Images.Count;
+    public ICarouselImage? SelectedImage => _hasSelected ? Images[selectedIndex] : null;
+
+    private async Task StageFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        foreach (var file in files)
+        {
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                Snackbar.Add($"{file.Name} is not an image.", Severity.Warning);
+                continue;
+            }
+
+            try
+            {
+                var image = await BlobStorageService.UploadAsync(file) as ICarouselImage;
+
+                if (!AllowMultiple)
+                {
+                    Images.Clear();
+                    Images.Add(image);
+                    selectedIndex = 0;
+                    break;
+                }
+
+                Images.Add(image);
+                Snackbar.Add($"Uploaded {file.Name} successfully", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Failed to upload {file.Name}: {ex.Message}", Severity.Error);
+            }
+        }
+
+        if (!_hasSelected && Images.Count > 0)
+            selectedIndex = 0;
+
+        await OnImagesChanged.InvokeAsync(Images);
+    }
+
+    private async Task DeleteSelectedImage()
+    {
+        if (!_hasSelected) return;
+
+        var parameters = new DialogParameters<DeleteDialog>
+        {
+            { dl => dl.ContentText, "Do you really want to delete this image? This process cannot be undone." },
+            { dl => dl.ButtonText, "Delete" },
+            { dl => dl.Color, Color.Error }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<DeleteDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && result.Canceled)
+            return;
+
+        Images.RemoveAt(selectedIndex);
+        Snackbar.Add("Image deleted.", Severity.Error);
+
+        selectedIndex = Images.Count > 0 ? Math.Min(selectedIndex, Images.Count - 1) : -1;
+
+        StateHasChanged();
+    }
+
+    private void ZoomIn() => zoomLevel = Math.Min(zoomLevel + 0.1, 2.0);
+    private void ZoomOut() => zoomLevel = Math.Max(zoomLevel - 0.1, 0.5);
+    private void MoveLeft()
+    {
+        if (!_hasSelected || selectedIndex == 0) return;
+        (Images[selectedIndex - 1], Images[selectedIndex]) = (Images[selectedIndex], Images[selectedIndex - 1]);
+        selectedIndex--;
+    }
+    private void MoveRight()
+    {
+        if (!_hasSelected || selectedIndex >= Images.Count - 1) return;
+        (Images[selectedIndex + 1], Images[selectedIndex]) = (Images[selectedIndex], Images[selectedIndex + 1]);
+        selectedIndex++;
+    }
+}

@@ -17,6 +17,7 @@ public class AuctionService : IAuctionService
         _dbContext = dbContext;
     }
 
+
     public async Task<AuctionViewModel> CreateAuctionAsync(AuctionViewModel viewModel, CancellationToken cancellationToken = default)
     {
         // Ensure the creator exists in the DB

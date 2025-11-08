@@ -1,0 +1,105 @@
+﻿@using AuctionPortal.Components.ImageViewer
+@using AuctionPortal.Data.Models
+@using MudBlazor
+
+<link rel="stylesheet" type="text/css" href="css/carousel.css">
+
+<MudContainer Class="pa-1">
+    @if (_images.Count == 0)
+    {
+        <div class="main-image-frame mb-3 d-flex justify-center align-center">
+            <MudText Typo="Typo.h6">No images uploaded</MudText>
+        </div>
+    }
+    else
+    {
+        <!-- Main image -->
+        <div class="main-image-frame mb-3 d-flex justify-center align-center">
+            <MudImage Src="@SelectedImage?.Url"
+                      Alt="@SelectedImage?.Alt"
+                      Class="main-image"
+                      ObjectFit="ObjectFit.Contain"
+                      Elevation="25"
+                      Style="@($"transform: scale({ZoomLevel}); transition: transform 0.25s ease;")" />
+        </div>
+
+        <!-- Thumbnail strip (only for multi-image mode) -->
+        @if (allowMultipleImages && _images.Count > 1)
+        {
+            <div class="d-flex justify-center align-center">
+                <div class="thumbnail-strip mx-2 d-flex gap-2">
+                    @foreach (var tuple in _images.Select((itm, idx) => (itm, idx)))
+                    {
+                        var item = tuple.itm;
+                        var idx = tuple.idx;
+
+                        <MudImage Src="@item.Url"
+                                  Width="70"
+                                  Height="70"
+                                  ObjectFit="ObjectFit.Cover"
+                                  Class="@(idx == SelectedIndex ? "thumbnail selected" : "thumbnail")"
+                                  Elevation="@(idx == SelectedIndex ? 8 : 2)"
+                                  @onclick="@(() => OnThumbnailClick(idx))"
+                                  draggable="false" />
+                    }
+                </div>
+            </div>
+        }
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public double ZoomLevel { get; set; } = 1.0;
+    [Parameter] public ICarouselImage? Image { get; set; }
+    [Parameter] public IEnumerable<ICarouselImage>? Images { get; set; }
+
+    [Parameter] public int SelectedIndex { get; set; } = 0;
+    [Parameter] public EventCallback<int> SelectedIndexChanged { get; set; }
+    [Parameter] public EventCallback<int> OnImageSelected { get; set; }
+
+    private bool allowMultipleImages = true;
+
+    private List<ICarouselImage> _images = new();
+
+    private ICarouselImage? SelectedImage =>
+        (SelectedIndex >= 0 && SelectedIndex < _images.Count)
+            ? _images[SelectedIndex]
+            : null;
+
+    protected override void OnParametersSet()
+    {
+        if (Image is not null)
+        {
+            allowMultipleImages = false;
+            _images = new List<ICarouselImage> { Image };
+        }
+        else if (Images != null)
+        {
+            allowMultipleImages = true;
+            _images = Images.ToList();
+        }
+        else
+        {
+            _images.Clear();
+        }
+
+        // Ensure SelectedIndex is within bounds
+        if (SelectedIndex < 0 || SelectedIndex >= _images.Count)
+            SelectedIndex = _images.Count > 0 ? 0 : -1;
+    }
+
+    private async Task OnThumbnailClick(int index)
+    {
+        if (index < 0 || index >= _images.Count)
+            return;
+
+        SelectedIndex = index;
+        StateHasChanged();
+
+        if (SelectedIndexChanged.HasDelegate)
+            await SelectedIndexChanged.InvokeAsync(index);
+
+        if (OnImageSelected.HasDelegate)
+            await OnImageSelected.InvokeAsync(index);
+    }
+}

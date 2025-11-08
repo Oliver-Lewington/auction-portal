@@ -3,9 +3,9 @@ using MudBlazor;
 
 namespace AuctionPortal.Dialogs;
 
-public static class AuctionDialogs
+public static class ConfirmAndDeleteDialog
 {
-    public static async Task<bool> ConfirmAndDeleteEntity(
+    public static async Task<bool> Generate(
         Guid id,
         IDataService dataService,
         IDialogService dialogService,

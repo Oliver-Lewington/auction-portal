@@ -1,8 +1,12 @@
-﻿@inherits ProtectedPageBase
+﻿@inherits StepperComponentBase<ProductViewModel>
+
 @page "/{AuctionId:guid}/products/create"
 
 @using AuctionPortal.Components.Account
+@using AuctionPortal.Components.ImageUpload
+@using AuctionPortal.Components.ImageViewer
 @using AuctionPortal.Components.Pages.Product
+@using AuctionPortal.ViewModels
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-3">
     <MudText Typo="Typo.h4" GutterBottom="true">Create a New Product</MudText>
@@ -12,15 +16,16 @@
     <MudDivider Class="my-4" />
 
     <MudPaper Elevation="1" Class="p-4">
-        <MudStepper @ref="stepper" OnPreviewInteraction="validator.OnPreviewInteraction">
+        <MudStepper @ref="stepper" OnPreviewInteraction="Validator.OnPreviewInteraction">
 
             <!-- Step 1: Images -->
-            <MudStep Title="Step 1: Upload Images" SecondaryText="Add product images" HasError="validator.HasError(0)">
+            <MudStep Title="Step 1: Upload Images" SecondaryText="Add product images" HasError="Validator.HasError(0)">
                 <MudStack Spacing="3">
-                    <ProductImageManager Images="images" />
-                    @if (validator.HasError(0))
+                    <MultiImageUploader TImage="ImageViewModel" @bind-Images="ViewModel.Images" />
+
+                    @if (Validator.HasError(0))
                     {
-                        @foreach (var msg in validator.GetErrorMessages(0))
+                        @foreach (var msg in Validator.GetErrorMessages(0))
                         {
                             <MudText Color="Color.Error" Typo="Typo.caption">@msg</MudText>
                         }
@@ -33,23 +38,23 @@
             </MudStep>
 
             <!-- Step 2: Description -->
-            <MudStep Title="Step 2: Describe Your Item" SecondaryText="Enter name and description" HasError="validator.HasError(1)">
+            <MudStep Title="Step 2: Describe Your Item" SecondaryText="Enter name and description" HasError="Validator.HasError(1)">
                 <MudStack Spacing="3">
-                    <MudTextField @bind-Value="product.Title"
+                    <MudTextField @bind-Value="ViewModel.Title"
                                   Label="Name"
                                   Variant="Variant.Outlined"
-                                  Error="validator.HasError(1)"
+                                  Error="Validator.HasError(1)"
                                   FullWidth="true" />
-                    <MudTextField @bind-Value="product.Description"
+                    <MudTextField @bind-Value="ViewModel.Description"
                                   Label="Description"
                                   Lines="4"
                                   Variant="Variant.Outlined"
                                   FullWidth="true"
                                   HelperText="Optional: Add more detail about your product." />
 
-                    @if (validator.HasError(1))
+                    @if (Validator.HasError(1))
                     {
-                        @foreach (var msg in validator.GetErrorMessages(1))
+                        @foreach (var msg in Validator.GetErrorMessages(1))
                         {
                             <MudText Color="Color.Error" Typo="Typo.caption">@msg</MudText>
                         }
@@ -59,15 +64,15 @@
 
             <!-- Step 3: Costs -->
             <MudStep Title="Step 3: Set Pricing" SecondaryText="Starting price, reserve, expiry"
-                     HasError="validator.HasError(2)" CompletedChanged="OnSubmitProduct">
+                     HasError="Validator.HasError(2)" CompletedChanged="OnCompletedChanged">
                 <MudStack Spacing="3">
-                    <MudNumericField @bind-Value="product.StartingPrice"
+                    <MudNumericField @bind-Value="ViewModel.StartingPrice"
                                      Label="Starting Price (£)"
                                      Variant="Variant.Outlined"
-                                     Error="validator.HasError(2) && product.StartingPrice <= 0"
+                                     Error="Validator.HasError(2) && ViewModel.StartingPrice <= 0"
                                      FullWidth="true" />
 
-                    <MudNumericField @bind-Value="product.ReservePrice"
+                    <MudNumericField @bind-Value="ViewModel.ReservePrice"
                                      Label="Reserve Price (£)"
                                      Variant="Variant.Outlined"
                                      FullWidth="true" />
@@ -75,12 +80,12 @@
                     <MudDatePicker Label="Expiry Date"
                                    Date="@ExpiryDateNullable"
                                    DateChanged="@(d => ExpiryDateNullable = d)"
-                                   Error="validator.HasError(2) && ExpiryDateNullable != default || product.ExpiryDate < DateTime.Now"
+                                   Error="Validator.HasError(2) && ExpiryDateNullable != default || ViewModel.ExpiryDate < DateTime.Now"
                                    Variant="Variant.Outlined" />
 
-                    @if (validator.HasError(2))
+                    @if (Validator.HasError(2))
                     {
-                        @foreach (var msg in validator.GetErrorMessages(2))
+                        @foreach (var msg in Validator.GetErrorMessages(2))
                         {
                             <MudText Color="Color.Error" Typo="Typo.caption">@msg</MudText>
                         }

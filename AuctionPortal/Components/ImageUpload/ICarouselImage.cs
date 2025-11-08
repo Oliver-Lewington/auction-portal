@@ -1,4 +1,4 @@
-﻿namespace AuctionPortal.Components.ImageCarousel;
+﻿namespace AuctionPortal.Components.ImageViewer;
 
 public interface ICarouselImage
 {

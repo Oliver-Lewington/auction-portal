@@ -1,6 +1,6 @@
 ﻿/* === Main fixed-size container === */
 .main-image-frame {
-    height: 20rem; /* stays the same for all images */
+    height: 26rem; /* stays the same for all images */
     margin: 0 auto;
     border-radius: 16px;
     background-color: #1e1e1e10;

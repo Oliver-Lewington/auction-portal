@@ -22,7 +22,7 @@ public partial class AuctionSettings : ComponentBase
 
     private async Task DeleteAuction()
     {
-        await AuctionDialogs.ConfirmAndDeleteEntity(
+        await ConfirmAndDeleteDialog.Generate(
             Auction.Id,
             AuctionService,
             DialogService,
