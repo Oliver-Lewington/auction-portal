@@ -10,6 +10,8 @@
 @inject IDialogService DialogService
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
+@inject BreadcrumbService BreadcrumbService
+
 
 <MudStack Spacing="5">
     <MudGrid Justify="Justify.SpaceBetween" Class="align-center">
@@ -179,11 +181,15 @@
     protected override async Task OnInitializedAsync()
     {
         auctionViewModels = await AuctionService.GetAuctionsAsync();
+        BreadcrumbService.SetBreadcrumbs(new[]
+        {
+            new BreadcrumbItem("Auctions", NavigationManager.Uri)
+        });
     }
 
     private void CreateAuction() => NavigationManager.NavigateTo("/auctions/create");
     private void ViewAuction(Guid auctionId) => NavigationManager.NavigateTo($"/auctions/{auctionId}");
-    private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/auctions/edit/{auctionId}");
+    private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/auctions/{auctionId}/edit");
 
     private async Task DeleteAuction(Guid id)
     {

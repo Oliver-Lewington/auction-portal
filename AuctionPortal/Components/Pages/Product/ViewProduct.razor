@@ -7,6 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject AuctionHubClientService HubClientService
+@inject BreadcrumbService BreadcrumbService
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudLink Class="text-sm" Style="cursor:pointer;" OnClick="GoBack">
@@ -66,7 +67,12 @@
             Product = await ProductService.GetProductByIdAsync(ProductId);
             var auction = await AuctionService.GetAuctionByIdAsync(AuctionId);
             title = auction.Name;
-
+            BreadcrumbService.SetBreadcrumbs(new[]
+            {
+                new BreadcrumbItem("Auctions", "/"),
+                new BreadcrumbItem(title, $"/auctions/{auction.Id}"),
+                new BreadcrumbItem(Product.Title, NavigationManager.Uri)
+            });
             // Subscribe to SignalR bid updates
             HubClientService.BidUpdated += OnBidUpdated;
             await HubClientService.StartAsync();

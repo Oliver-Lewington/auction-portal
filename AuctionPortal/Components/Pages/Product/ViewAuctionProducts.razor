@@ -31,7 +31,7 @@ else
                                 View Details
                             </MudButton>
                             <MudStack Row Spacing="1">
-                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo($"auctions/{product.AuctionId}/products/edit/{product.Id}"))" />
+                                <MudIconButton Icon="@Icons.Material.Outlined.Settings" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo($"auctions/{product.AuctionId}/products/{product.Id}/admin"))" />
                                 <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteProduct(product)" />
                             </MudStack>
                         </MudStack>

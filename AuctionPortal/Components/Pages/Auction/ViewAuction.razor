@@ -13,6 +13,7 @@
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 @inject IMapper Mapper
+@inject BreadcrumbService BreadcrumbService
 
 <MudGrid Spacing="6">
 
@@ -96,6 +97,11 @@
         try
         {
             auctionViewModel = await AuctionService.GetAuctionByIdAsync(Id);
+            BreadcrumbService.SetBreadcrumbs(new[]
+            {
+                new BreadcrumbItem("Auctions", "/"),
+                new BreadcrumbItem(auctionViewModel.Name, NavigationManager.Uri)
+            });
             
         }
         catch (Exception ex)

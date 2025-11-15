@@ -11,6 +11,7 @@ public partial class AuctionEditorStepper : StepperComponentBase<AuctionViewMode
     [Parameter] public Guid? AuctionId { get; set; }   // Optional — null means "create mode"
 
     [Inject] IAuctionService AuctionService { get; set; } = default!;
+    [Inject] BreadcrumbService BreadcrumbService { get; set; } = default!;
 
     protected override bool IsEditMode => AuctionId.HasValue && AuctionId != Guid.Empty;
 
@@ -43,6 +44,23 @@ public partial class AuctionEditorStepper : StepperComponentBase<AuctionViewMode
                 InitializeViewModel(() => existingAuction);
             }
             AddValidation(ValidationRules.GetAuctionValidationRules());
+
+            var breadcrumbs = new List<BreadcrumbItem>
+            {
+                new("Auctions", "/")
+            };
+
+            if (IsEditMode)
+            {
+                breadcrumbs.Add(new(ViewModel.Name, $"/auctions/{ViewModel.Id}"));
+            }
+
+            breadcrumbs.Add(new(
+                IsEditMode ? "Edit Auction" : "Create Auction",
+                Navigation.Uri,
+                icon: Icons.Material.Filled.Create));
+
+            BreadcrumbService.SetBreadcrumbs(breadcrumbs);
         }
         catch (Exception ex)
         {

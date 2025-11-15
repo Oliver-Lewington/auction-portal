@@ -32,7 +32,7 @@ public static class ServiceConfigurationExtensions
 
         services.AddScoped<AuctionHubClientService>();
 
-        services.AddScoped<NavigationHistoryService>();
+        services.AddSingleton<BreadcrumbService>();
     }
 
     public static void ConfigureFormOptions(this IServiceCollection services)

@@ -12,6 +12,8 @@ public partial class ProductEditorStepper : StepperComponentBase<ProductViewMode
     [Parameter] public Guid? ProductId { get; set; } // Optional — null means create mode
 
     [Inject] IProductService ProductService { get; set; } = default!;
+    [Inject] IAuctionService AuctionService { get; set; } = default!;
+    [Inject] BreadcrumbService BreadcrumbService { get; set; } = default!;
 
     protected override bool IsEditMode => ProductId.HasValue && ProductId != Guid.Empty;
 
@@ -26,6 +28,7 @@ public partial class ProductEditorStepper : StepperComponentBase<ProductViewMode
             {
                 // Create mode: initialise empty model
                 InitializeViewModel(() => new ProductViewModel(AuctionId));
+                ViewModel.Auction = await AuctionService.GetAuctionByIdAsync(AuctionId);
             }
             else
             {
@@ -43,6 +46,27 @@ public partial class ProductEditorStepper : StepperComponentBase<ProductViewMode
             }
 
             AddValidation(ValidationRules.GetProductValidationRules());
+            var auction = ViewModel.Auction;
+
+            var breadcrumbs = new List<BreadcrumbItem>
+            {
+                new("Auctions", "/"),
+                new(auction.Name, $"/auctions/{auction.Id}")
+            };
+
+            if (IsEditMode)
+            {
+                breadcrumbs.Add(new(ViewModel.Title,$"/auctions/{auction.Id}/products/{ViewModel.Id}"));
+                breadcrumbs.Add(new("Admin", NavigationManager.Uri, icon: Icons.Material.Outlined.Settings));
+            }
+
+            breadcrumbs.Add(new(
+                IsEditMode ? "Edit Product" : "Create Product",
+                Navigation.Uri,
+                icon: Icons.Material.Filled.Create));
+
+            BreadcrumbService.SetBreadcrumbs(breadcrumbs);
+
         }
         catch (Exception ex)
         {
@@ -53,6 +77,11 @@ public partial class ProductEditorStepper : StepperComponentBase<ProductViewMode
         {
             IsLoading = false;
         }
+    }
+
+    protected override void OnParametersSet()
+    {
+
     }
 
     protected async Task OnCompletedChanged(bool completed)

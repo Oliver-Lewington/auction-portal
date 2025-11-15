@@ -33,7 +33,7 @@ public partial class AuctionSettings : ComponentBase
 
     private void EditAuction()
     {
-        Navigation.NavigateTo($"/auctions/edit/{Auction.Id}");
+        Navigation.NavigateTo($"/auctions/{Auction.Id}/edit");
     }
 
     private void CreateProduct()

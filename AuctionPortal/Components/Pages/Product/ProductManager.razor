@@ -1,11 +1,16 @@
 ﻿@page "/auctions/{AuctionId:guid}/products/{ProductId:guid}/admin"
 
+@using AuctionPortal.Dialogs
 @using AuctionPortal.ViewModels
 @using AuctionPortal.Services
 
 @inject IProductService ProductService
+@inject IAuctionService AuctionService
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 @inject AuctionHubClientService HubClientService
+@inject IDialogService DialogService
+@inject BreadcrumbService BreadcrumbService
 
 <MudContainer MaxWidth="MaxWidth.Large">
 
@@ -156,6 +161,24 @@
             {
                 <BidInformation EnableBidding="true" Product="Product" />
             }
+            <MudPaper Class="pa-2 mt-2"
+                        Elevation="1">
+                <MudStack Spacing="1">
+                    <MudButton Variant="Variant.Filled"
+                                Color="Color.Primary"
+                                StartIcon="@Icons.Material.Filled.Edit"
+                                OnClick="EditProduct">
+                        Edit
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled"
+                                Color="Color.Error"
+                                StartIcon="@Icons.Material.Filled.Delete"
+                                OnClick="DeleteProduct">
+                        Delete
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
         </MudItem>
     </MudGrid>
 </MudContainer>
@@ -187,11 +210,14 @@
         try
         {
             Product = await ProductService.GetProductByIdAsync(ProductId);
-
-            // Subscribe to updates (child also listens—but does not conflict)
+            BreadcrumbService.SetBreadcrumbs(new[]
+            {
+                new BreadcrumbItem("Auctions", "/"),
+                new BreadcrumbItem(Product.Auction.Name, $"/auctions/{Product.Auction.Id}"),
+                new BreadcrumbItem(Product.Title, $"/auctions/{Product.Auction.Id}/products/{Product.Id}"),
+                new BreadcrumbItem("Admin", NavigationManager.Uri, icon: Icons.Material.Outlined.Settings),
+            });
             HubClientService.BidUpdated += OnBidUpdated;
-
-            // DO NOT StartAsync() or JoinGroup() — child handles this.
         }
         catch (Exception ex)
         {
@@ -205,12 +231,29 @@
     {
         if (Product?.Id != bid.ProductId) return;
 
-        // Avoid duplicates
         if (!Product.Bids.Any(x => x.Id == bid.Id))
             Product.Bids.Insert(0, bid);
 
         await InvokeAsync(StateHasChanged);
     }
+
+
+    /* ------------------------------
+     *    EDIT / DELETE BUTTONS
+     * ------------------------------ */
+
+    private void EditProduct()
+    {
+        NavigationManager.NavigateTo($"/auctions/{AuctionId}/products/{ProductId}/edit");
+    }
+
+    private async Task DeleteProduct() => await ConfirmAndDeleteDialog.Generate(
+            Product.Id,
+            ProductService,
+            DialogService,
+            Snackbar,
+            () => Task.Run(() => NavigationManager.NavigateTo($"/auctions/{AuctionId}/products")));
+
 
     public void Dispose()
     {

@@ -1,8 +1,13 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+
 @inject NavigationManager NavigationManager
+@inject BreadcrumbService BreadcrumbService
 @inject IJSRuntime JS
 
+
 @using AuctionPortal.Components.Themes
+@using AuctionPortal.Services
 @using MudBlazor
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
@@ -35,6 +40,17 @@
     </MudAppBar>
 
     <MudMainContent>
+        <MudBreadcrumbs class="mt-4 ms-10" Items="BreadcrumbService.Items">
+            <ItemTemplate Context="item">
+                <MudStack Spacing="0" AlignItems="AlignItems.Center" Row>
+                    @if (item.Icon != null)
+                    {
+                        <MudIcon Class="me-2" Color="Color.Primary" Size="Size.Small" Icon="@item.Icon" />
+                    }
+                    <MudLink Typo="Typo.subtitle1" Href="@item.Href"><b>@item.Text</b></MudLink>
+                </MudStack>
+            </ItemTemplate>
+        </MudBreadcrumbs>
         <MudContainer Class="pt-7 pa-4" MaxWidth="MaxWidth.Large">
             @Body
         </MudContainer>
@@ -54,6 +70,7 @@
     protected override void OnInitialized()
     {
         _theme = MudblazorThemes.AtosTheme();
+        BreadcrumbService.OnChanged += StateHasChanged;
     }
 
     private void DarkModeToggle() => _isDarkMode = !_isDarkMode;
@@ -65,6 +82,11 @@
     private async Task GoBack()
     {
         await JS.InvokeVoidAsync("history.back");
+    }
+
+    public void Dispose()
+    {
+        BreadcrumbService.OnChanged -= StateHasChanged;
     }
 
     private bool IsHomePage => NavigationManager.Uri.EndsWith("/");
