@@ -57,7 +57,7 @@ public partial class ProductEditorStepper : StepperComponentBase<ProductViewMode
             if (IsEditMode)
             {
                 breadcrumbs.Add(new(ViewModel.Title,$"/auctions/{auction.Id}/products/{ViewModel.Id}"));
-                breadcrumbs.Add(new("Admin", NavigationManager.Uri, icon: Icons.Material.Outlined.Settings));
+                breadcrumbs.Add(new("Admin", NavigationManager.Uri));
             }
 
             breadcrumbs.Add(new(
