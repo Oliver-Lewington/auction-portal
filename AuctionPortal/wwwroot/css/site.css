@@ -29,6 +29,26 @@
     line-height: 1.6rem;
 }
 
+.chip-mini {
+    font-size: 0.65rem !important;
+    height: 20px !important;
+    line-height: 20px !important;
+    border-radius: 6px !important;
+}
+
+.chip-transparent {
+    opacity: 0.45 !important; 
+    backdrop-filter: blur(1px); 
+}
+
+.text-center {
+    text-align:center;
+}
+
+.text-xs {
+    font-size: 10px;
+}
+
 .text-sm {
     font-size: 13px;
 }

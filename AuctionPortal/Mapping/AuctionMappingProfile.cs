@@ -1,6 +1,7 @@
-﻿using AutoMapper;
-using AuctionPortal.Data.Models;
+﻿using AuctionPortal.Data.Models;
+using AuctionPortal.Mapping.Converters;
 using AuctionPortal.ViewModels;
+using AutoMapper;
 
 namespace AuctionPortal.Mapping;
 
@@ -9,14 +10,14 @@ public class AuctionMappingProfile : Profile
     public AuctionMappingProfile()
     {
         CreateMap<AuctionViewModel, AuctionModel>()
-                   .ForMember(dest => dest.Creator, opt => opt.Ignore()) // handled manually
-                   .ForMember(dest => dest.Id, opt => opt.Ignore())      // EF generates ID
-                   .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                   .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+            .ForMember(dest => dest.Creator, opt => opt.Ignore()) // handled manually
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
 
         CreateMap<AuctionModel, AuctionViewModel>()
             .ForMember(dest => dest.CreatorId, opt => opt.MapFrom(src => src.Creator.Id));
 
-        CreateMap<ImageViewModel, AuctionImageModel>().ReverseMap();
+        CreateMap<ImageViewModel, AuctionImageModel>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()) // Added to enable new images to be added (view VM), without FK restraint.
+            .ReverseMap();
     }
 }

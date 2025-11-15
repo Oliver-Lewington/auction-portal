@@ -16,7 +16,7 @@ else
         {
             <MudItem xs="12" sm="6" md="6" lg="3">
                 <MudCard Class="mx-2 my-2">
-                    <MudCardMedia Image="@(product.Images?.FirstOrDefault()?.Url ?? "https://placehold.co/600x400")"
+                    <MudCardMedia Image="@product.Images?.FirstOrDefault()?.Url"
                                   Height="180"/>
 
 
@@ -27,11 +27,11 @@ else
                         </MudText>
 
                         <MudStack Row Justify="Justify.SpaceBetween">
-                            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility">
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Visibility" OnClick="@(() => NavigationManager.NavigateTo($"auctions/{product.AuctionId}/products/{product.Id}"))">
                                 View Details
                             </MudButton>
                             <MudStack Row Spacing="1">
-                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo($"auctions/{product.AuctionId}/products/edit/{product.Id}"))" />
                                 <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteProduct(product)" />
                             </MudStack>
                         </MudStack>

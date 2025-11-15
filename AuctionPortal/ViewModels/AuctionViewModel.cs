@@ -1,7 +1,4 @@
-﻿using AuctionPortal.Components.ImageViewer;
-using AuctionPortal.Data.Models;
-
-namespace AuctionPortal.ViewModels;
+﻿namespace AuctionPortal.ViewModels;
 
 public class AuctionViewModel
 {
@@ -12,6 +9,9 @@ public class AuctionViewModel
     public string CreatorId { get; set; } = null!;
     public bool LiveFlag { get; set; }
     public bool IsDraft { get; set; } = true;
+
+    public int ProductSaleTimeInterval { get; set; } = 5;
+
 
     private DateTime _startDate = DateTime.Today.AddDays(1);
     public DateTime StartDate

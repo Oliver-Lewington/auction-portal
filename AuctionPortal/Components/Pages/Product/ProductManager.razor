@@ -1,0 +1,219 @@
+﻿@page "/auctions/{AuctionId:guid}/products/{ProductId:guid}/admin"
+
+@using AuctionPortal.ViewModels
+@using AuctionPortal.Services
+
+@inject IProductService ProductService
+@inject ISnackbar Snackbar
+@inject AuctionHubClientService HubClientService
+
+<MudContainer MaxWidth="MaxWidth.Large">
+
+    <MudText Class="mb-4" Typo="Typo.h3">Product Management</MudText>
+
+    <MudGrid>
+        <!-- LEFT COLUMN -->
+        <MudItem xs="12" md="8">
+            <MudPaper Class="pa-3">
+
+                <!-- HEADER -->
+                <MudStack Row Justify="Justify.SpaceBetween">
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.h5" Class="font-semibold">@Product?.Title</MudText>
+
+                        <MudChip T="string"
+                                 Class="chip-mini chip-transparent"
+                                 Label="true"
+                                 Color="@(Product?.Sold == true ? Color.Success : Color.Default)"
+                                 Size="Size.Small">
+                            @(Product?.Sold == true ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudStack>
+
+                    <MudStack Row Spacing="1">
+                        <MudText Typo="Typo.subtitle2" Class="text-secondary">Product Id:</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="font-semibold">@Product?.Id</MudText>
+                    </MudStack>
+                </MudStack>
+
+                <!-- IMAGE + PRICE -->
+                <MudGrid Spacing="3" Class="my-5">
+
+                    <!-- IMAGES -->
+                    <MudItem xs="12" md="7">
+                        @if (Product?.Images?.Any() == true)
+                        {
+                            <MudCarousel TData="ImageViewModel"
+                                         ItemsSource="Product.Images"
+                                         ShowBullets="false"
+                                         ShowArrows="true"
+                                         AutoCycle="true"
+                                         Class="rounded"
+                                         Style="height:300px">
+                                <ItemTemplate>
+                                    <div class="d-flex justify-center align-center" style="height:300px;">
+                                        <MudImage Src="@context.Url"
+                                                  Alt="@context.Alt"
+                                                  ObjectFit="ObjectFit.Contain"
+                                                  Height="300"
+                                                  Class="main-image"
+                                                  Elevation="25" />
+                                    </div>
+                                </ItemTemplate>
+                            </MudCarousel>
+                        }
+                        else
+                        {
+                            <MudPaper Class="d-flex align-center justify-center"
+                                      Style="height:300px;background:#f5f5f5">
+                                <MudText Typo="Typo.h6" Class="text-secondary">No images available</MudText>
+                            </MudPaper>
+                        }
+                    </MudItem>
+
+                    <!-- PRICE DETAILS -->
+                    <MudItem xs="12" md="5">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.h6" Class="mb-2">Price Details</MudText>
+
+                            <MudPaper Class="pa-3 text-center" Elevation="1">
+                                <MudText Typo="Typo.caption" Class="text-secondary">Starting Price</MudText>
+                                <MudText Typo="Typo.h6" Class="font-semibold">£@Product?.StartingPrice</MudText>
+                            </MudPaper>
+
+                            <MudPaper Class="pa-3 text-center" Elevation="1">
+                                <MudText Typo="Typo.caption" Class="text-secondary">Current Bid</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Primary" Class="font-semibold">
+                                    £@Product?.FinalBid
+                                </MudText>
+                            </MudPaper>
+
+                            <MudPaper Class="pa-3 text-center" Elevation="1">
+                                <MudText Typo="Typo.caption" Class="text-secondary">Reserve</MudText>
+                                <MudText Typo="Typo.h6" Class="font-semibold">£@Product?.ReservePrice</MudText>
+                            </MudPaper>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+
+                <!-- DESCRIPTION -->
+                <MudText Typo="Typo.h6" Class="pl-3 mt-4 font-semibold">Description</MudText>
+                <MudText Typo="Typo.body2" Class="pl-4 pb-4 text-secondary">
+                    @(Product?.Description ?? "No description has been provided for this product.")
+                </MudText>
+
+                <!-- BID TABLE -->
+                @if (!OrderedBids.Any())
+                {
+                    <MudText Typo="Typo.subtitle2" Class="text-secondary">
+                        No bids have been made yet.
+                    </MudText>
+                }
+                else
+                {
+                    <MudTable T="BidViewModel" Items="CurrentPageBids"
+                              Hover="true" Dense="true" Breakpoint="Breakpoint.Sm"
+                              Elevation="0" Class="table-header-grey">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6" Class="font-semibold">Bid History</MudText>
+                            <MudSpacer />
+                            <MudText Typo="Typo.subtitle1" Class="text-secondary">
+                                @OrderedBids.Count @("bid".Pluralize(OrderedBids.Count)) total
+                            </MudText>
+                        </ToolBarContent>
+                        <HeaderContent>
+                            <MudTh>BIDDER</MudTh>
+                            <MudTh>AMOUNT</MudTh>
+                            <MudTh>TIME</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="BIDDER">
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.subtitle1">@context.BidderName</MudText>
+                                    <MudText Class="text-secondary" Typo="Typo.caption">
+                                        @(context.IsWinningBid ? "Top Bidder" : "Outbid")
+                                    </MudText>
+                                </MudStack>
+                            </MudTd>
+                            <MudTd DataLabel="AMOUNT">£@context.DisplayAmount</MudTd>
+                            <MudTd DataLabel="TIME">@context.Timestamp.ToLocalTime().GetTimeAgo()</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+
+                    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="mt-4">
+                        <MudPagination SelectedChanged="OnBidPageChanged"
+                                       Count="TotalBidPages"
+                                       Selected="bidCurrentPage"
+                                       Class="pa-4" />
+                    </MudStack>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <!-- RIGHT COLUMN -->
+        <MudItem xs="12" md="4">
+            @if (Product != null)
+            {
+                <BidInformation EnableBidding="true" Product="Product" />
+            }
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public Guid AuctionId { get; set; }
+    [Parameter] public Guid ProductId { get; set; }
+
+    private ProductViewModel? Product { get; set; }
+
+    private int bidCurrentPage = 1;
+    private readonly int bidPageSize = 4;
+
+    private IReadOnlyList<BidViewModel> OrderedBids =>
+        Product?.Bids?
+            .OrderByDescending(b => b.Timestamp)
+            .ToList()
+        ?? new List<BidViewModel>();
+
+    private IEnumerable<BidViewModel> CurrentPageBids =>
+        OrderedBids.Skip((bidCurrentPage - 1) * bidPageSize).Take(bidPageSize);
+
+    private int TotalBidPages =>
+        OrderedBids.Count == 0 ? 1 :
+        (int)Math.Ceiling(OrderedBids.Count / (double)bidPageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Product = await ProductService.GetProductByIdAsync(ProductId);
+
+            // Subscribe to updates (child also listens—but does not conflict)
+            HubClientService.BidUpdated += OnBidUpdated;
+
+            // DO NOT StartAsync() or JoinGroup() — child handles this.
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load data: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void OnBidPageChanged(int page) => bidCurrentPage = page;
+
+    private async void OnBidUpdated(BidViewModel bid)
+    {
+        if (Product?.Id != bid.ProductId) return;
+
+        // Avoid duplicates
+        if (!Product.Bids.Any(x => x.Id == bid.Id))
+            Product.Bids.Insert(0, bid);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        HubClientService.BidUpdated -= OnBidUpdated;
+    }
+}

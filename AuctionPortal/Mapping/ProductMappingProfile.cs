@@ -13,8 +13,10 @@ namespace AuctionPortal.Mapping
                 .ReverseMap()
                 .ForMember(dest => dest.FinalBid, opt => opt.Ignore());
 
-            CreateMap<ImageViewModel, ProductImageModel>().ReverseMap();
+            CreateMap<ImageViewModel, ProductImageModel>()
+                 .ReverseMap();
 
+            CreateMap<BidModel, BidViewModel>().ReverseMap();
         }
     }
 }

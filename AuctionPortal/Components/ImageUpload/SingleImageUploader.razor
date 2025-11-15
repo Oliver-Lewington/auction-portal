@@ -93,10 +93,10 @@
     {
         if (!_hasImage) return;
 
-        await ConfirmDialog.Generate(Snackbar, DialogService, async () => {
-            Image = default;
-            await ImageChanged.InvokeAsync(Image);
-        });
+        await ConfirmDialog.Generate(Snackbar, DialogService);
+
+        Image = default;
+        await ImageChanged.InvokeAsync(Image);
     }
 
     private void ZoomIn() => zoomLevel = Math.Min(zoomLevel + 0.1, 2.0);

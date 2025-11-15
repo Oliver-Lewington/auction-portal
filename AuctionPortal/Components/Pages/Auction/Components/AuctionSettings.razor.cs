@@ -33,7 +33,7 @@ public partial class AuctionSettings : ComponentBase
 
     private void EditAuction()
     {
-        // Navigation logic to add product page
+        Navigation.NavigateTo($"/auctions/edit/{Auction.Id}");
     }
 
     private void CreateProduct()
@@ -41,7 +41,7 @@ public partial class AuctionSettings : ComponentBase
         if (Auction is null)
             return; // Snackbar "Auction has not been passed successfully"
 
-        Navigation.NavigateTo($"{Auction.Id}/products/create");
+        Navigation.NavigateTo($"/auctions/{Auction.Id}/products/create");
     }
 
     private void SaveSettings()

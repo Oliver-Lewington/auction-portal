@@ -39,6 +39,12 @@
         border-radius: 3px;
     }
 
+.table-header-grey th {
+    background-color: #f5f5f5; /* light grey background */
+    color: #6c757d; /* grey text */
+    font-weight: 600;
+}
+
 /* Thumbnails — consistent */
 .thumbnail {
     border-radius: 8px;

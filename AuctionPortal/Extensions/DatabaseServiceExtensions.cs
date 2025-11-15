@@ -10,7 +10,7 @@ public static class DatabaseExtensions
         var conn = config.GetConnectionString("DefaultConnection")
             ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
 
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", false);
 
         services.AddDbContext<AuctionDbContext>(options => options.UseNpgsql(conn), ServiceLifetime.Scoped);
         services.AddDatabaseDeveloperPageExceptionFilter();

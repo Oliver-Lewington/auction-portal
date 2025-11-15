@@ -1,10 +1,106 @@
-﻿page "/{AuctionId:guid}/product/{ProductId:guid}"
+﻿@page "/auctions/{AuctionId:guid}/products/{ProductId:guid}"
 
-<h3>ViewProduct</h3>
+@using AuctionPortal.Services
+@using AuctionPortal.ViewModels
+@inject IProductService ProductService
+@inject IAuctionService AuctionService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject AuctionHubClientService HubClientService
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudLink Class="text-sm" Style="cursor:pointer;" OnClick="GoBack">
+        @title
+    </MudLink>
+
+    <MudGrid Spacing="8">
+        <MudItem sm="12" md="8">
+            <MudText Typo="Typo.h4"><b>@Product?.Title</b></MudText>
+            <MudText Typo="Typo.caption" Class="mb-4 text-secondary">
+                @(Product?.Description ?? "No description has been provided for this product.")
+            </MudText>
+
+            @if (Product?.Images?.Any() == true)
+            {
+                <MudCarousel TData="ImageViewModel" ItemsSource="Product.Images" ShowArrows="false" AutoCycle="true" Class="my-5 rounded" Style="height: 475px;">
+                    <ItemTemplate>
+                        <div class="main-image-frame mb-3 d-flex justify-center align-center">
+                            <MudImage Src="@context.Url" Alt="@context.Alt"
+                                      Class="main-image"
+                                      ObjectFit="ObjectFit.Contain"
+                                      Height="425"
+                                      Elevation="25" />
+                        </div>
+                    </ItemTemplate>
+                </MudCarousel>
+            }
+            else
+            {
+                <MudPaper Class="d-flex align-center justify-center" Style="height:400px;background:#f5f5f5">
+                    <MudText Typo="Typo.h6" Class="text-secondary">No images available</MudText>
+                </MudPaper>
+            }
+        </MudItem>
+
+        <MudItem Class="mt-10" sm="12" md="4">
+            @if (!isLoading)
+            {
+                <BidInformation EnableBidding="false" Product="Product" />
+            }
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
 @code {
-    #region Parameters
     [Parameter] public Guid AuctionId { get; set; }
     [Parameter] public Guid ProductId { get; set; }
-    #endregion
+
+    private ProductViewModel? Product { get; set; }
+    private bool isLoading = true;
+    private string title = "No auction found.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Product = await ProductService.GetProductByIdAsync(ProductId);
+            var auction = await AuctionService.GetAuctionByIdAsync(AuctionId);
+            title = auction.Name;
+
+            // Subscribe to SignalR bid updates
+            HubClientService.BidUpdated += OnBidUpdated;
+            await HubClientService.StartAsync();
+            if (Product != null)
+            {
+                await HubClientService.JoinProductGroup(Product.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load product: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OnBidUpdated(BidViewModel bid)
+    {
+        if (Product?.Id != bid.ProductId) return;
+
+        // Avoid duplicate bids
+        if (!Product.Bids.Any(x => x.Id == bid.Id))
+        {
+            Product.Bids.Insert(0, bid);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void GoBack() => NavigationManager.NavigateTo($"/auctions/{AuctionId}");
+
+    public void Dispose()
+    {
+        HubClientService.BidUpdated -= OnBidUpdated;
+    }
 }

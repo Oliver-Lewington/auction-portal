@@ -13,7 +13,7 @@ public partial class ViewAuctionProducts : ComponentBase
     [Inject] IProductService ProductService { get; set; } = default!;
     [Inject] IDialogService DialogService { get; set; } = default!;
     [Inject] ISnackbar Snackbar { get; set; } = default!;
-    [Inject] NavigationManager Navigation { get; set; } = default!;
+    [Inject] NavigationManager NavigationManager { get; set; } = default!;
 
     private int currentPage = 1;
     private int pageSize = 4;
@@ -29,11 +29,6 @@ public partial class ViewAuctionProducts : ComponentBase
     private void OnSelectedChanged(int page)
     {
         currentPage = page;
-    }
-
-    private void EditProduct(Guid id)
-    {
-
     }
 
     private async Task DeleteProduct(ProductViewModel productViewModel) => await ConfirmAndDeleteDialog.Generate(

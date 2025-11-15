@@ -1,4 +1,4 @@
-﻿@page "/{Id:guid}"
+﻿@page "/auctions/{Id:guid}"
 
 @using AuctionPortal.Services
 @using AuctionPortal.Data.Models
@@ -31,7 +31,7 @@
             <!-- Title & Description -->
             <MudStack Spacing="0">
                 <MudText Color="Color.Primary" Typo="Typo.caption">
-                    <b>@auctionViewModel.EndsAt.ToString("ddd dd MMM") - @auctionViewModel.EndsAt.ToString("ddd dd MMM")</b>
+                    <b>@auctionViewModel.BeginsAt.ToString("ddd dd MMM") - @auctionViewModel.EndsAt.ToString("ddd dd MMM")</b>
                 </MudText>
                 <MudText Typo="Typo.h4">@auctionViewModel?.Name</MudText>
                 <MudText Typo="Typo.body2" Class="text-secondary">
@@ -71,11 +71,6 @@
                          BadgeData="@auctionViewModel?.Products.Count"
                          BadgeColor="Color.Primary">
                 <ViewAuctionProducts ProductRecords="auctionViewModel?.Products" />
-            </MudTabPanel>
-
-            <!-- Bidders Tab -->
-            <MudTabPanel Text="Bidders">
-                <MudText>Content One</MudText>
             </MudTabPanel>
 
             <!-- Analytics Tab -->

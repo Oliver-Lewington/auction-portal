@@ -1,8 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 @using AuctionPortal.Components.Themes
-@using AuctionPortal.Data.Models
-@using Microsoft.AspNetCore.Identity
 @using MudBlazor
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
@@ -11,15 +11,26 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Color="Color.Primary" Elevation="1" >
-        <MudLink Color="Color.Inherit" Typo="Typo.h5" Href="/" Class="ml-3">Auction Portal</MudLink>
+
+    <MudAppBar Color="Color.Primary" Elevation="1">
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+
+            @if (!IsHomePage)
+            {
+                <!-- Back Button -->
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="GoBack" Edge="Edge.Start" />
+            }
+
+            <MudLink Color="Color.Inherit" Typo="Typo.h5" Href="/" Class="ml-3">
+                Auction Portal
+            </MudLink>
+        </MudStack>
 
         <MudSpacer />
 
-       @*  <!-- Dark/Light mode toggle -->
-        <MudIconButton Icon="@DarkLightModeButtonIcon" Color="Color.Inherit" OnClick="@DarkModeToggle" /> *@
+        <!-- Dark mode toggle -->
+        @* <MudIconButton Icon="@DarkLightModeButtonIcon" Color="Color.Inherit" OnClick="DarkModeToggle" /> *@
 
-        <!-- User section -->
         <NavMenu />
     </MudAppBar>
 
@@ -40,7 +51,6 @@
     private bool _isDarkMode = false;
     private MudTheme? _theme;
 
-
     protected override void OnInitialized()
     {
         _theme = MudblazorThemes.AtosTheme();
@@ -48,9 +58,14 @@
 
     private void DarkModeToggle() => _isDarkMode = !_isDarkMode;
 
-    
-
     public string DarkLightModeButtonIcon => _isDarkMode
         ? Icons.Material.Rounded.AutoMode
         : Icons.Material.Outlined.DarkMode;
+
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+
+    private bool IsHomePage => NavigationManager.Uri.EndsWith("/");
 }

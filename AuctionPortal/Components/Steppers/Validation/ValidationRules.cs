@@ -16,7 +16,7 @@ public static class ValidationRules
         v.AddRule(1, a => a.Image != null, "An image is required.");
 
         // Step 3: Timing
-        v.AddRule(2, a => a.BeginsAt.Date >= DateTime.Today.AddDays(1), "Auction must start on or after tomorrow.");
+        v.AddRule(2, a => a.BeginsAt.Date >= DateTime.Today, "Auction must start on or after today.");
         v.AddRule(2, a => a.EndsAt > a.BeginsAt,  "End time must be after the start time.");
     };
 
@@ -33,6 +33,5 @@ public static class ValidationRules
 
         // Step 3: Pricing and expiry
         v.AddRule(2, p => p.StartingPrice > 0, "Starting price must be greater than 0.");
-        v.AddRule(2, p => p.ExpiryDate == default || p.ExpiryDate > DateTime.Now, "Expiry date must be in the future.");
     };
 }

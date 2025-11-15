@@ -13,6 +13,7 @@ public abstract class StepperComponentBase<TViewModel> : ProtectedPageBase
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
     protected string UserId { get; private set; }
+    protected bool IsLoading { get; set; } = true;
     protected StepperValidator<TViewModel>? Validator { get; private set; }
 
     protected TViewModel ViewModel { get; private set; } = default!;
@@ -20,8 +21,9 @@ public abstract class StepperComponentBase<TViewModel> : ProtectedPageBase
 
     /// <summary>
     /// Indicates whether this stepper is creating a new item or editing an existing one.
+    /// False by default (create mode).
     /// </summary>
-    protected bool IsEditMode { get; private set; }
+    protected virtual bool IsEditMode { get; private set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,6 +53,9 @@ public abstract class StepperComponentBase<TViewModel> : ProtectedPageBase
     /// </summary>
     protected void AddValidation(Action<StepperValidator<TViewModel>> configure)
     {
+        if (ViewModel == null)
+            throw new ArgumentNullException("ViewModel must be declared before adding validation.");
+
         Validator = new StepperValidator<TViewModel>(ViewModel);
         configure(Validator);
     }

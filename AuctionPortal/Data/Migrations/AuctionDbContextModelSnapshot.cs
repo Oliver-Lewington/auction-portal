@@ -35,11 +35,12 @@ namespace AuctionPortal.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -96,18 +97,20 @@ namespace AuctionPortal.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionImage", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.AuctionImageModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Alt")
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.HasKey("Id");
 
@@ -121,19 +124,21 @@ namespace AuctionPortal.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("BeginsAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatorId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("EndsAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("ImageId")
                         .HasColumnType("uuid");
@@ -143,10 +148,14 @@ namespace AuctionPortal.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("ProductSaleTimeInterval")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -154,31 +163,64 @@ namespace AuctionPortal.Data.Migrations
 
                     b.HasIndex("ImageId");
 
+                    b.HasIndex("Name");
+
                     b.ToTable("Auctions");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProducICarouselImage", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.BidModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BidderName")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsWinningBid")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Bids");
+                });
+
+            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImageModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Alt")
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Caption")
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
-                    b.Property<Guid?>("ProductModelId")
+                    b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductModelId");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("ProductImages");
                 });
@@ -193,32 +235,38 @@ namespace AuctionPortal.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<decimal?>("FinalBid")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("FinalBidderName")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<decimal?>("ReservePrice")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("SaleEnd")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("SaleSequence")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("StartingPrice")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -363,9 +411,11 @@ namespace AuctionPortal.Data.Migrations
                 {
                     b.HasOne("AuctionPortal.Data.Models.ApplicationUser", "Creator")
                         .WithMany()
-                        .HasForeignKey("CreatorId");
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("AuctionPortal.Data.Models.AuctionImage", "Image")
+                    b.HasOne("AuctionPortal.Data.Models.AuctionImageModel", "Image")
                         .WithMany()
                         .HasForeignKey("ImageId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -376,11 +426,26 @@ namespace AuctionPortal.Data.Migrations
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("AuctionPortal.Data.Models.ProducICarouselImage", b =>
+            modelBuilder.Entity("AuctionPortal.Data.Models.BidModel", b =>
                 {
-                    b.HasOne("AuctionPortal.Data.Models.ProductModel", null)
+                    b.HasOne("AuctionPortal.Data.Models.ProductModel", "Product")
+                        .WithMany("Bids")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("AuctionPortal.Data.Models.ProductImageModel", b =>
+                {
+                    b.HasOne("AuctionPortal.Data.Models.ProductModel", "Product")
                         .WithMany("Images")
-                        .HasForeignKey("ProductModelId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("AuctionPortal.Data.Models.ProductModel", b =>
@@ -452,6 +517,8 @@ namespace AuctionPortal.Data.Migrations
 
             modelBuilder.Entity("AuctionPortal.Data.Models.ProductModel", b =>
                 {
+                    b.Navigation("Bids");
+
                     b.Navigation("Images");
                 });
 #pragma warning restore 612, 618

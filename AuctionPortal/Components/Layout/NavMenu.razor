@@ -7,9 +7,12 @@
 {
     <MudMenu AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopRight">
         <ActivatorContent>
-            <MudAvatar Size="Size.Small" Color="Color.Tertiary" Class="cursor-pointer">
-                <MudText Class="text-sm"><b>@UserInitials</b></MudText>
-            </MudAvatar>
+            <MudStack Row AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.subtitle1">@UserDisplayName</MudText>
+                <MudAvatar Size="Size.Small" Color="Color.Tertiary" Class="cursor-pointer ml-1">
+                    <MudText Class="text-sm"><b>@UserInitials</b></MudText>
+                </MudAvatar>
+            </MudStack>
         </ActivatorContent>
         <ChildContent>
             <MudMenuItem Disabled="true">@UserDisplayName</MudMenuItem>

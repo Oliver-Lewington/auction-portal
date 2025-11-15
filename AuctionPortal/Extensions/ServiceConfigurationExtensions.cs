@@ -28,6 +28,11 @@ public static class ServiceConfigurationExtensions
     {
         services.AddScoped<IAuctionService, AuctionService>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IBidService, BidService>();
+
+        services.AddScoped<AuctionHubClientService>();
+
+        services.AddScoped<NavigationHistoryService>();
     }
 
     public static void ConfigureFormOptions(this IServiceCollection services)

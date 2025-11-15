@@ -1,0 +1,118 @@
+﻿@inherits StepperComponentBase<ProductViewModel>
+
+@page "/auctions/{AuctionId:guid}/products/create"
+@page "/auctions/{AuctionId:guid}/products/edit/{ProductId:guid}"
+
+@using AuctionPortal.Components.ImageUpload
+@using AuctionPortal.Components.ImageViewer
+@using AuctionPortal.Components.Shared
+@using AuctionPortal.ViewModels
+
+<MudText Typo="Typo.h4" GutterBottom="true">
+    @(IsEditMode ? $"Edit Product: {ViewModel?.Title ?? ""}" : "Create a New Product")
+</MudText>
+
+<MudText Typo="Typo.subtitle2" Class="mb-4">
+    @(IsEditMode
+        ? "Make changes and update your product details below."
+        : "Follow the steps below to add your item to the auction. You can add images, describe your item, and set costs.")
+</MudText>
+
+<MudDivider Class="my-4" />
+
+<LoadingContainer TData="ProductViewModel" IsLoading="IsLoading" Data="ViewModel">
+    <MudStepper @ref="stepper"
+                CompletedStepColor="Color.Success"
+                OnPreviewInteraction="Validator.OnPreviewInteraction">
+
+        <!-- STEP 1: Images -->
+        <MudStep Title="Step 1: Upload Images" Skippable="IsEditMode"
+                 SecondaryText="Add product images"
+                 HasError="Validator.HasError(0)">
+            <MudStack Spacing="3">
+                <MultiImageUploader TImage="ImageViewModel" @bind-Images="ViewModel.Images" />
+
+                @if (Validator.HasError(0))
+                {
+                    @foreach (var msg in Validator.GetErrorMessages(0))
+                    {
+                        <MudText Color="Color.Error" Typo="Typo.caption">@msg</MudText>
+                    }
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption">
+                        @(IsEditMode ? "Update your product images if needed." : "Upload at least one image.")
+                    </MudText>
+                }
+            </MudStack>
+        </MudStep>
+
+        <!-- STEP 2: Description -->
+        <MudStep Title="Step 2: Describe Your Item" Skippable="IsEditMode"
+                 SecondaryText="Enter name and description"
+                 HasError="Validator.HasError(1)">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="ViewModel.Title"
+                              Label="Name"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              Error="Validator.HasError(1)"
+                              HelperText="@(!Validator.HasError(1) ? "Enter a descriptive name for your product." : null)"
+                              ErrorText="@(Validator.HasError(1) ? "Name is required." : null)" />
+
+                <MudTextField @bind-Value="ViewModel.Description"
+                              Label="Description"
+                              Lines="4"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              HelperText="Optional: Add more detail about your product." />
+            </MudStack>
+        </MudStep>
+
+        <!-- STEP 3: Costs -->
+        <MudStep Title="Step 3: Set Pricing" Skippable="IsEditMode"
+                 SecondaryText="Starting price, reserve, expiry"
+                 HasError="Validator.HasError(2)">
+            <MudStack Spacing="3">
+                <MudNumericField HideSpinButtons="true" Min="0"
+                    Required="true"
+                    Variant="Variant.Outlined"
+                    IconSize="Size.Small"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.CurrencyPound"
+                    Label="Starting Bid"
+                    Error="Validator.HasError(2) && ViewModel.StartingPrice <= 0"
+                    @bind-Value="ViewModel.StartingPrice" />
+
+                <MudNumericField HideSpinButtons="true" Min="0" 
+                    Variant="Variant.Outlined"
+                    IconSize="Size.Small"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.CurrencyPound"
+                    Label="Reserve Bid (optional)"
+                    HelperText="Enter a whole number only"
+                    @bind-Value="ViewModel.ReservePrice" />
+            </MudStack>
+        </MudStep>
+
+        <!-- STEP 4: Confirmation -->
+        <MudStep Title="Step 5: Confirmation"
+                 SecondaryText="Confirm all details are correct"
+                 CompletedChanged="OnCompletedChanged">
+            <MudStack Spacing="3">
+                <MudText Typo="Typo.subtitle1">
+                    @(IsEditMode ? "Confirm your updates" : "Confirm all details are correct")
+                </MudText>
+                <MudText Typo="Typo.caption" Class="text-secondary">
+                    @(IsEditMode
+                        ? "Review your changes before saving."
+                        : "Review your product information before submission.")
+                </MudText>
+
+                <MudDivider Class="my-2" />
+            </MudStack>
+        </MudStep>
+
+    </MudStepper>
+</LoadingContainer>

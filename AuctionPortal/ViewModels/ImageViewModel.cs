@@ -7,13 +7,14 @@ public class ImageViewModel : ICarouselImage
 {
     public ImageViewModel() { }
 
-    public ImageViewModel(string url, NavigationManager? navigationManager = null)
+    public ImageViewModel(Guid id, string url, NavigationManager? navigationManager = null)
     {
+        Id = id;
         Url = url ?? string.Empty;
         Uri = BuildUri(url, navigationManager);
     }
 
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
     public string Url { get; set; } = string.Empty;
     public string? Alt { get; set; }
     public string? Caption { get; set; }

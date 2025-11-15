@@ -1,0 +1,147 @@
+﻿@using AuctionPortal.Services
+@using AuctionPortal.ViewModels
+
+<MudPaper Class="pb-5 rounded">
+    <!-- Header -->
+    <MudStack Row AlignItems="AlignItems.Center" Class="pa-2 bg-grey-light" Style="background-color:#f5f5f5;">
+        <MudSpacer />
+        <MudText Typo="Typo.subtitle2" Class="text-secondary text-sm">
+            @Product?.SaleEnd.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+        </MudText>
+    </MudStack>
+
+    <!-- Countdown -->
+    <MudGrid Class="py-3 px-4">
+        @foreach (var (label, value) in CountdownDisplay)
+        {
+            <MudItem xs="3" Class="text-center">
+                <MudText Typo="Typo.h4" Class="font-semiBold">@value</MudText>
+                <MudText Typo="Typo.caption" Class="text-secondary text-xs">@label</MudText>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <MudProgressLinear Color="Color.Primary" Value="Countdown.Progress" />
+
+    <!-- Current Bid -->
+    <MudStack Spacing="1" Class="mt-5 mx-5">
+        <MudText Typo="Typo.caption" Class="text-secondary"><b>CURRENT BID</b></MudText>
+        <MudText Typo="Typo.h2">£ @FormatAmount(CurrentBid)</MudText>
+
+        @if (Product?.ReservePrice > 0)
+        {
+            <MudText Typo="Typo.subtitle2" Class="text-secondary">
+                @(CurrentBid >= Product.ReservePrice ? "Reserve met" : "Reserve not met")
+        </MudText>
+
+        }
+        else
+        {
+            <MudText Typo="Typo.subtitle2" Class="text-secondary">No reserve price</MudText>
+        }
+    </MudStack>
+
+    <!-- Bid Form -->
+    @if (EnableBidding)
+    {
+        <MudForm @ref="BidFormRef">
+            <MudStack Spacing="3" Class="mx-4 mt-4">
+
+                <!-- Quick Bid Buttons -->
+                <MudStack Row Justify="Justify.SpaceEvenly" Spacing="2">
+                    @foreach (var increment in new[] { 5, 10, 20 })
+                    {
+                        <MudButton FullWidth
+                                   Class="rounded-pill"
+                                   Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   OnClick="() => IncreaseBid(increment)">
+                            £@((int)CurrentBid + increment)
+                        </MudButton>
+                    }
+                </MudStack>
+
+                <!-- Bidder Name -->
+                <MudTextField Placeholder="Bidder Name"
+                              Variant="Variant.Outlined"
+                              @bind-Value="NewBid.BidderName"
+                              Required="true"
+                              RequiredError="Please enter your name" />
+
+                <!-- Bid Amount -->
+                <MudNumericField HideSpinButtons="true"
+                                 Min="(int)CurrentBid"
+                                 Placeholder="@($"{@FormatAmount(CurrentBid)} or up")"
+                                 Variant="Variant.Outlined"
+                                 Adornment="Adornment.Start"
+                                 AdornmentIcon="@Icons.Material.Filled.CurrencyPound"
+                                 HelperText="Enter a whole number only"
+                                 @bind-Value="NewBid.Amount"
+                                 Error="@(NewBid.Amount <= CurrentBid)"
+                                 ErrorText="@($"Bid must be higher than £{FormatAmount(CurrentBid)}")" />
+
+                <!-- Submit Button -->
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Disabled="@(Countdown.IsExpired || IsPlacingBid || NewBid.Amount <= CurrentBid)"
+                           OnClick="SubmitBid">
+                    @if (IsPlacingBid)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                    }
+                    else
+                    {
+                        @:Place bid
+                    }
+                </MudButton>
+            </MudStack>
+        </MudForm>
+    }
+
+    <!-- Closed Notice -->
+    @if (Countdown.IsExpired)
+    {
+        <MudAlert Severity="Severity.Warning" Dense="true" Class="mx-4 mt-3">
+            Bidding has closed for this item.
+        </MudAlert>
+    }
+
+    <!-- Bid History -->
+    <MudStack Spacing="2" Class="mx-4 mt-8">
+        @if (Product?.Bids?.Any() == true)
+        {
+            @foreach (var bid in Product.Bids.OrderByDescending(b => b.Timestamp).Take(3))
+            {
+                <MudStack Row Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.subtitle2">@bid.BidderName</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="text-secondary">@bid.Timestamp.ToLocalTime().GetTimeAgo()</MudText>
+                    <MudText Typo="Typo.subtitle2"><b>£@FormatAmount(bid.Amount.GetValueOrDefault())</b></MudText>
+                </MudStack>
+            }
+        }
+        else
+        {
+            <MudText Typo="Typo.caption" Class="text-secondary">No bids yet.</MudText>
+        }
+    </MudStack>
+
+    <MudDivider Class="my-6" />
+
+    <!-- Terms -->
+    <MudStack Spacing="2" Class="mx-5">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" Size="Size.Small" Class="me-1" />
+            <MudText Typo="Typo.caption" Class="text-secondary">All bids are final and binding.</MudText>
+        </MudStack>
+
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Outlined.Payment" Color="Color.Info" Size="Size.Small" Class="me-1" />
+            <MudText Typo="Typo.caption" Class="text-secondary">Payment required within 48 hours of auction end.</MudText>
+        </MudStack>
+
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Outlined.AccountCircle" Color="Color.Primary" Size="Size.Small" Class="me-1" />
+            <MudText Typo="Typo.caption" Class="text-secondary">Bidders must be registered before placing a bid.</MudText>
+        </MudStack>
+    </MudStack>
+</MudPaper>

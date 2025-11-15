@@ -123,26 +123,10 @@
     {
         if (!_hasSelected) return;
 
-        var parameters = new DialogParameters<DeleteDialog>
-        {
-            { dl => dl.ContentText, "Do you really want to delete this image? This process cannot be undone." },
-            { dl => dl.ButtonText, "Delete" },
-            { dl => dl.Color, Color.Error }
-        };
-
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<DeleteDialog>("Confirm Delete", parameters, options);
-        var result = await dialog.Result;
-
-        if (result is not null && result.Canceled)
-            return;
+        await ConfirmDialog.Generate(Snackbar, DialogService);
 
         Images.RemoveAt(selectedIndex);
-        Snackbar.Add("Image deleted.", Severity.Error);
-
         selectedIndex = Images.Count > 0 ? Math.Min(selectedIndex, Images.Count - 1) : -1;
-
-        StateHasChanged();
         await ImagesChanged.InvokeAsync(Images);
     }
 

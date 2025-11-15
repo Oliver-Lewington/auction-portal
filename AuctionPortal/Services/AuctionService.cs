@@ -32,9 +32,10 @@ public class AuctionService : IAuctionService
         // Map the view model to the entity
         var auctionEntity = _mapper.Map<AuctionModel>(viewModel);
 
-        // Assign the linked ApplicationUser
+        if (auctionEntity.CreatedAt == default)
+            auctionEntity.CreatedAt = DateTime.UtcNow;
+
         auctionEntity.Creator = creator;
-        auctionEntity.CreatedAt = DateTime.UtcNow;
         auctionEntity.UpdatedAt = DateTime.UtcNow;
 
         // Save to DB
@@ -73,9 +74,28 @@ public class AuctionService : IAuctionService
         return _mapper.Map<AuctionModel, AuctionViewModel>(auctionModel);
     }
 
-    public Task UpdateAuctionAsync(AuctionViewModel auctionViewModel, CancellationToken cancellationToken = default)
+    public async Task<AuctionViewModel> UpdateAuctionAsync(AuctionViewModel auctionViewModel, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var auctionModel = await _dbContext.Auctions
+            .Include(a => a.Products)
+            .FirstOrDefaultAsync(a => a.Id == auctionViewModel.Id, cancellationToken);
+
+        if (auctionModel == null)
+            throw new Exception($"Auction with Id {auctionViewModel.Id} not found.");
+
+        _mapper.Map(auctionViewModel, auctionModel);
+
+        foreach (var product in auctionModel.Products)
+        {
+            // Calculate offset backwards from auction end
+            var offsetMinutes = product.SaleSequence == 0 ? 1 : product.SaleSequence * auctionModel.ProductSaleTimeInterval;
+
+            product.SaleEnd = auctionModel.EndsAt.AddMinutes(-offsetMinutes);
+            product.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return _mapper.Map<AuctionViewModel>(auctionModel);
     }
 
     public async Task DeleteEntityByIdAsync(Guid id, CancellationToken cancellationToken = default)

@@ -181,9 +181,9 @@
         auctionViewModels = await AuctionService.GetAuctionsAsync();
     }
 
-    private void CreateAuction() => NavigationManager.NavigateTo("/create");
-    private void ViewAuction(Guid auctionId) => NavigationManager.NavigateTo($"/{auctionId}");
-    private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/edit/{auctionId}");
+    private void CreateAuction() => NavigationManager.NavigateTo("/auctions/create");
+    private void ViewAuction(Guid auctionId) => NavigationManager.NavigateTo($"/auctions/{auctionId}");
+    private void EditAuction(Guid auctionId) => NavigationManager.NavigateTo($"/auctions/edit/{auctionId}");
 
     private async Task DeleteAuction(Guid id)
     {

@@ -17,25 +17,26 @@ public static class ApplicationBuilderExtensions
     {
         if (app.Environment.IsDevelopment())
         {
-            app.UseMigrationsEndPoint();
-            app.UseDeveloperExceptionPage();
+            app.UseDeveloperExceptionPage();         // Developer-friendly error page
+            app.UseMigrationsEndPoint();            // EF migration endpoint for dev
         }
         else
         {
             app.UseExceptionHandler("/Error", createScopeForErrors: true);
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
+            app.UseHsts();                           // Enforce HTTPS in production
+            app.UseHttpsRedirection();               // Redirect HTTP → HTTPS in production
         }
 
-        app.UseHttpsRedirection();
+        app.UseStaticFiles();
 
+        // Anti-forgery protection (applies to forms, APIs, etc.)
         app.UseAntiforgery();
 
-        app.UseStaticFiles();
+        // Razor components
         app.MapRazorComponents<App>()
            .AddInteractiveServerRenderMode();
 
-        // Add additional endpoints required by the Identity /Account Razor components.
+        // Identity / Account endpoints
         app.MapAdditionalIdentityEndpoints();
     }
 }

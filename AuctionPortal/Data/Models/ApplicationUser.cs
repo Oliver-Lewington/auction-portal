@@ -1,10 +1,21 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
-namespace AuctionPortal.Data.Models;
-
-public class ApplicationUser : IdentityUser
+namespace AuctionPortal.Data.Models
 {
-    public string DisplayName { get; set; } = string.Empty!;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public bool IsApprovedByAdmin { get; set; } = false;
+    [Table("ApplicationUsers")]
+    public class ApplicationUser : IdentityUser
+    {
+        [Required]
+        [MaxLength(100)]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        public bool IsApprovedByAdmin { get; set; } = false;
+    }
 }
